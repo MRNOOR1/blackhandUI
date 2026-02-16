@@ -1,0 +1,1 @@
+/usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/blackhand-ui.dir/src/main.c.o" "CMakeFiles/blackhand-ui.dir/src/screen_home.c.o" "CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o" -o blackhand-ui  /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses.dylib /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses-core.dylib
