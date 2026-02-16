@@ -176,6 +176,7 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o: /Users/mrnoori/Desktop/blackhandUI/src
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/config.h \
   /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h \
@@ -353,6 +354,7 @@ CMakeFiles/blackhand-ui.dir/src/screen_home.c.o: /Users/mrnoori/Desktop/blackhan
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/config.h \
   /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h \
@@ -530,6 +532,7 @@ CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o: /Users/mrnoori/Desktop/blac
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/config.h \
   /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h \
@@ -700,6 +703,8 @@ CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o: /Users/mrnoori/Desktop/blac
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_def.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_common.h:
+
+/Users/mrnoori/Desktop/blackhandUI/src/config.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_timeval.h:
 

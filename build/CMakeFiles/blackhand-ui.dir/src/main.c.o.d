@@ -178,4 +178,5 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/arch.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncseqs.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/ui.h
+  /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/config.h

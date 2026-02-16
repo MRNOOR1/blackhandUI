@@ -177,6 +177,7 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h
+ /Users/mrnoori/Desktop/blackhandUI/src/config.h
  /Users/mrnoori/Desktop/blackhandUI/src/ui.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h
@@ -355,6 +356,7 @@ CMakeFiles/blackhand-ui.dir/src/screen_home.c.o
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h
+ /Users/mrnoori/Desktop/blackhandUI/src/config.h
  /Users/mrnoori/Desktop/blackhandUI/src/ui.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h
@@ -533,6 +535,7 @@ CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h
  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h
+ /Users/mrnoori/Desktop/blackhandUI/src/config.h
  /Users/mrnoori/Desktop/blackhandUI/src/ui.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h
  /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h

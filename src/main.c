@@ -5,12 +5,7 @@
 #include <string.h>
 
 #include "ui.h"
-
-// ── Phone screen dimensions ─────────────────────
-// Change these to test different display sizes.
-// See the earlier conversation about 2-inch screens.
-#define PHONE_COLS  50
-#define PHONE_ROWS  15
+#include "config.h"
 
 // ── Create the phone plane ──────────────────────
 static struct ncplane *create_phone_plane(struct ncplane *std) {
@@ -40,10 +35,10 @@ static void draw_frame(struct ncplane *phone, const char *title) {
 
     ncplane_erase(phone);
 
-    if (rows < 3 || cols < 10) return;
+    if (rows < FRAME_MIN_ROWS || cols < FRAME_MIN_COLS) return;
 
     // Fill background
-    ncplane_set_bg_rgb(phone, 0x111111);
+    ncplane_set_bg_rgb(phone, COL_BG);
     for (unsigned y = 0; y < rows; y++) {
         for (unsigned x = 0; x < cols; x++) {
             ncplane_putchar_yx(phone, y, x, ' ');
@@ -51,7 +46,7 @@ static void draw_frame(struct ncplane *phone, const char *title) {
     }
 
     // Border
-    ncplane_set_fg_rgb(phone, 0x8b9a8c);
+    ncplane_set_fg_rgb(phone, COL_BORDER);
     nccell ul = NCCELL_TRIVIAL_INITIALIZER;
     nccell ur = NCCELL_TRIVIAL_INITIALIZER;
     nccell ll = NCCELL_TRIVIAL_INITIALIZER;
@@ -72,8 +67,8 @@ static void draw_frame(struct ncplane *phone, const char *title) {
     nccell_release(phone, &vl);
 
     // Header
-    ncplane_set_fg_rgb(phone, 0xd8dad3);
-    ncplane_putstr_yx(phone, 0, 1, " BH ");
+    ncplane_set_fg_rgb(phone, COL_HEADER_TEXT);
+    ncplane_putstr_yx(phone, 0, 1, TEXT_BRAND);
 
     if (title) {
         int title_x = cols - (int)strlen(title) - 2;
@@ -83,11 +78,11 @@ static void draw_frame(struct ncplane *phone, const char *title) {
     }
 
     // Header separator
-    ncplane_set_fg_rgb(phone, 0x555555);
+    ncplane_set_fg_rgb(phone, COL_SEPARATOR);
     ncplane_putstr_yx(phone, 1, 0, "┣");
     nccell sep = NCCELL_TRIVIAL_INITIALIZER;
     nccell_load(phone, &sep, "━");
-    nccell_set_fg_rgb(&sep, 0x555555);
+    nccell_set_fg_rgb(&sep, COL_SEPARATOR);
     ncplane_cursor_move_yx(phone, 1, 1);
     ncplane_hline(phone, &sep, cols - 2);
     nccell_release(phone, &sep);
@@ -97,15 +92,15 @@ static void draw_frame(struct ncplane *phone, const char *title) {
     ncplane_putstr_yx(phone, rows - 2, 0, "┣");
     nccell fsep = NCCELL_TRIVIAL_INITIALIZER;
     nccell_load(phone, &fsep, "━");
-    nccell_set_fg_rgb(&fsep, 0x555555);
+    nccell_set_fg_rgb(&fsep, COL_SEPARATOR);
     ncplane_cursor_move_yx(phone, rows - 2, 1);
     ncplane_hline(phone, &fsep, cols - 2);
     nccell_release(phone, &fsep);
     ncplane_putstr_yx(phone, rows - 2, cols - 1, "┫");
 
     // Footer
-    ncplane_set_fg_rgb(phone, 0xa5a58d);
-    ncplane_putstr_yx(phone, rows - 1, 1, " [q]Quit ");
+    ncplane_set_fg_rgb(phone, COL_FOOTER_TEXT);
+    ncplane_putstr_yx(phone, rows - 1, 1, TEXT_FOOTER);
 }
 
 // ── Main ────────────────────────────────────────
@@ -125,9 +120,8 @@ int main(void) {
     struct ncplane *std = notcurses_stdplane(nc);
 
     // Dev mode label
-    ncplane_set_fg_rgb(std, 0x444444);
-    ncplane_putstr_yx(std, 0, 2,
-        "[ Dev — 50x15 phone screen ]");
+    ncplane_set_fg_rgb(std, COL_DEV_LABEL);
+    ncplane_putstr_yx(std, 0, 2, TEXT_DEV_LABEL);
 
     struct ncplane *phone = create_phone_plane(std);
     if (!phone) {
@@ -136,24 +130,12 @@ int main(void) {
     }
 
     // ── Active screen state ─────────────────────
-    // This tracks which screen the user is on.
-    // Each screen's input handler can change it by
-    // returning a different screen_id.
     screen_id current_screen = SCREEN_HOME;
 
     // ── Main loop ───────────────────────────────
-    // The loop follows a simple pattern:
-    //   1. Draw frame (border, header, footer)
-    //   2. Draw current screen's content
-    //   3. Render (push to terminal)
-    //   4. Wait for keypress
-    //   5. Route key to current screen's input handler
-    //   6. Update current_screen based on return value
-    //   7. Repeat
     while (1) {
 
         // ── 1 & 2: Draw ────────────────────────
-        // The screen name shown in the header
         const char *title = NULL;
         switch (current_screen) {
             case SCREEN_HOME:     title = "Home"; break;
@@ -172,13 +154,11 @@ int main(void) {
             case SCREEN_SETTINGS:
                 screen_settings_draw(phone);
                 break;
-            // For screens you haven't built yet,
-            // show a placeholder:
             default:
-                ncplane_set_fg_rgb(phone, 0x555555);
-                ncplane_putstr_yx(phone, 4, 3, "Coming soon...");
-                ncplane_set_fg_rgb(phone, 0xa5a58d);
-                ncplane_putstr_yx(phone, 6, 3, "[h] go Home");
+                ncplane_set_fg_rgb(phone, COL_PLACEHOLDER);
+                ncplane_putstr_yx(phone, 4, 3, TEXT_COMING_SOON);
+                ncplane_set_fg_rgb(phone, COL_HINT);
+                ncplane_putstr_yx(phone, 6, 3, TEXT_GO_HOME);
                 break;
         }
 
@@ -198,20 +178,10 @@ int main(void) {
         }
 
         // ── 5 & 6: Route to screen handler ─────
-        // Each screen's input function gets the key
-        // and returns which screen to show next.
-        // If the user pressed Enter on "Calls",
-        // screen_home_input returns SCREEN_CALLS,
-        // and next iteration draws that screen.
         switch (current_screen) {
             case SCREEN_HOME:
                 current_screen = screen_home_input(key);
                 break;
-            // Add more screen input handlers here
-            // as you build them:
-            // case SCREEN_SETTINGS:
-            //     current_screen = screen_settings_input(key);
-            //     break;
             default:
                 break;
         }
