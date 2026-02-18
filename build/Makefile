@@ -129,6 +129,30 @@ blackhand-ui/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/build
 .PHONY : blackhand-ui/fast
 
+src/hardware.o: src/hardware.c.o
+.PHONY : src/hardware.o
+
+# target to build an object file
+src/hardware.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.o
+.PHONY : src/hardware.c.o
+
+src/hardware.i: src/hardware.c.i
+.PHONY : src/hardware.i
+
+# target to preprocess a source file
+src/hardware.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.i
+.PHONY : src/hardware.c.i
+
+src/hardware.s: src/hardware.c.s
+.PHONY : src/hardware.s
+
+# target to generate assembly for a file
+src/hardware.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.s
+.PHONY : src/hardware.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -210,6 +234,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... blackhand-ui"
+	@echo "... src/hardware.o"
+	@echo "... src/hardware.i"
+	@echo "... src/hardware.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

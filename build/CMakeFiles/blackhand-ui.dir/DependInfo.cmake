@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/mrnoori/Desktop/blackhandUI/src/hardware.c" "CMakeFiles/blackhand-ui.dir/src/hardware.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/hardware.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/main.c" "CMakeFiles/blackhand-ui.dir/src/main.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/main.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screen_home.c" "CMakeFiles/blackhand-ui.dir/src/screen_home.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screen_home.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screen_settings.c" "CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o.d"

@@ -8,6 +8,7 @@ add_executable(blackhand-ui
     src/main.c
     src/screen_home.c
     src/screen_settings.c
+    src/hardware.c
 )
 
 target_include_directories(blackhand-ui PRIVATE ${NOTCURSES_INCLUDE_DIRS})

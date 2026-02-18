@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/blackhand-ui.dir/src/hardware.c.o"
+  "CMakeFiles/blackhand-ui.dir/src/hardware.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/main.c.o"
   "CMakeFiles/blackhand-ui.dir/src/main.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/screen_home.c.o"
