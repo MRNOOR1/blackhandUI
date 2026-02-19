@@ -429,223 +429,282 @@ static struct ncplane *create_phone_plane(struct ncplane *std) {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  STATUS BAR — GHOST ORIGINAL (E1)
+ *  Black Hand OS · status_bar.c
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  DESIGN LANGUAGE
+ *  ───────────────
+ *  Everything that is OFF is nearly invisible — very dark grey, not truly
+ *  black, so the glyph structure is still legible up close but vanishes at
+ *  arm's length.  Everything ON is a clean off-white (#E0E0E0), never pure
+ *  white, which would be harsh against the black background.
+ *
+ *  BATTERY   ▰▰▰▱  75%
+ *    ▰  (U+25B0)  BLACK LOWER RIGHT TRIANGLE — "filled" segment
+ *    ▱  (U+25B1)  WHITE LOWER RIGHT TRIANGLE — "hollow" segment
+ *    Percentage is printed in a near-invisible dark grey so it takes
+ *    no visual priority over the glyph bar itself.
+ *    Below 15%: percentage shifts to a deep red.
+ *
+ *  SIGNAL    ●●●○
+ *    ●  (U+25CF)  BLACK CIRCLE — active bar
+ *    ○  (U+25CB)  WHITE CIRCLE — inactive bar
+ *    No-signal: all four circles shown hollow + a single dim "✕" prefix.
+ *
+ *  COLOUR PALETTE (24-bit RGB)
+ *  ───────────────────────────
+ *  Add these to config.h:
+ *
+ *    #define COL_GHOST_ON       0xE0E0E0   // active glyph — off-white
+ *    #define COL_GHOST_OFF      0x1E1E1E   // inactive glyph — near-invisible
+ *    #define COL_GHOST_PCT      0x2C2C2C   // percentage text — very dark
+ *    #define COL_GHOST_LOW      0x7F1D1D   // low battery percentage — deep red
+ *    #define COL_BG             0x080808   // background
+ *
+ *  ANIMATION
+ *  ─────────
+ *  Both functions accept `tick` — an int your render loop increments each
+ *  frame.  Used for:
+ *    • Low battery blink  (below 15%, not charging)
+ *    • No-signal pulse    (the ✕ fades in/out)
+ *
+ *  RENDER LOOP EXAMPLE
+ *  ───────────────────
+ *    int tick = 0;
+ *    while (running) {
+ *        draw_battery(phone, battery_pct, charging, tick);
+ *        draw_signal (phone, signal_bars, connected,  tick);
+ *        notcurses_render(nc);
+ *        usleep(100000);  // 100 ms → 10 fps
+ *        tick++;
+ *    }
+ */
+
+
 /* ───────────────────────────────────────────────────────────────────────────
- *  draw_battery() - Draw the battery indicator on the status bar
+ *  INTERNAL HELPERS
  * ───────────────────────────────────────────────────────────────────────────
  *
- *  WHAT IT DOES:
- *  Draws a battery icon like "[###-] 75%" in the top-left of the screen.
- *  The color changes based on battery level:
- *    - Green (>50%): Battery is healthy
- *    - Yellow (20-50%): Getting low
- *    - Red (<20%): Critical, charge soon!
+ *  ghost_set() is a tiny convenience wrapper that sets fg+bg together.
+ *  We call it constantly, so collapsing it cuts visual noise in the
+ *  drawing functions below.
  *
- *  PARAMETERS:
- *    phone    - The plane to draw on
- *    percent  - Battery level 0-100
- *    charging - true if connected to power
- *
- *  HOW TO MODIFY:
- *    - Change icon style: Edit the snprintf format strings
- *    - Change colors: Edit COL_BATTERY_* in config.h
- *    - Change position: Edit STATUS_BATTERY_COL in config.h
- *    - Change thresholds: Modify the if/else conditions below
+ *  C CONCEPT: STATIC FUNCTIONS
+ *  ────────────────────────────
+ *  `static` here means the function is private to this translation unit
+ *  (this .c file).  It won't be visible to other files — keeps our
+ *  namespace clean.
  */
-static void draw_battery(struct ncplane *phone, int percent, bool charging) {
-    /*
-     * C CONCEPT: CHARACTER ARRAYS (STRINGS)
-     * -------------------------------------
-     * char icon[16] declares an array of 16 characters.
-     * We'll build our battery string here.
-     *
-     * Why 16? Our icon is at most ~15 characters:
-     *   "[####]+ 100%" = 12 characters + null terminator = 13
-     *   16 gives us a safety margin.
-     *
-     * IMPORTANT: Always leave room for '\0' (null terminator)!
-     */
-    char icon[16];
+static void ghost_set(struct ncplane *n, uint32_t fg) {
+    ncplane_set_fg_rgb(n, fg);
+    ncplane_set_bg_rgb(n, COL_BG);
+}
 
+
+/* ───────────────────────────────────────────────────────────────────────────
+ *  draw_battery()
+ * ───────────────────────────────────────────────────────────────────────────
+ *
+ *  OUTPUT EXAMPLES
+ *  ───────────────
+ *    Normal   100% →  ▰▰▰▰  100%
+ *    Normal    75% →  ▰▰▰▱   75%
+ *    Normal    50% →  ▰▰▱▱   50%
+ *    Normal    25% →  ▰▱▱▱   25%
+ *    Low       12% →  ▰▱▱▱   12%   ← percentage blinks red
+ *    Charging  60% →  ▰▰▰▱  ⚡60%
+ *
+ *  PARAMETERS
+ *  ──────────
+ *    phone     ncplane to draw on
+ *    percent   battery level 0–100
+ *    charging  true while plugged in
+ *    tick      frame counter from render loop
+ */
+static void draw_battery(struct ncplane *phone, int percent,
+                         bool charging, int tick) {
+
+    /* ── SEGMENTS ──────────────────────────────────────────────────────── */
     /*
-     * Calculate how many "bars" to show (0-4).
+     * Map 0–100% onto 0–4 filled segments.
      *
      * FORMULA: (percent + 24) / 25
-     *   - 0-24%   → 0 bars (but we'll show 1 minimum in practice)
-     *   - 25-49%  → 1 bar
-     *   - 50-74%  → 2 bars
-     *   - 75-99%  → 3 bars
-     *   - 100%    → 4 bars
+     *   0–24%   → 0 segments  (we clamp up to 1 so bar is never all-hollow
+     *                           unless percent == 0, which looks intentional)
+     *   25–49%  → 1 segment
+     *   50–74%  → 2 segments
+     *   75–99%  → 3 segments
+     *   100%    → 4 segments
      *
-     * Adding 24 before dividing gives us ceiling-like behavior.
+     * We DON'T clamp 0 up to 1 deliberately — if the battery reads 0%,
+     * all four glyphs are hollow, which is a valid and readable state.
      */
-    int bars = (percent + 24) / 25;
-    if (bars > 4) bars = 4;  /* Clamp to maximum */
-    if (bars < 0) bars = 0;  /* Clamp to minimum (defensive) */
+    int segs = (percent + 24) / 25;
+    if (segs > 4) segs = 4;
+    if (segs < 0) segs = 0;
 
+    /* ── LOW BATTERY BLINK ─────────────────────────────────────────────── */
     /*
-     * Build the fill pattern.
-     * Start with "----" (empty) and replace with '#' for filled bars.
+     * Below 15% and not charging: blink the whole widget.
      *
-     * char fill[5] = "----" creates:
-     *   fill[0] = '-'
-     *   fill[1] = '-'
-     *   fill[2] = '-'
-     *   fill[3] = '-'
-     *   fill[4] = '\0'  (null terminator, automatically added)
+     * tick % 10 cycles 0→9.
+     *   0–4  = widget visible
+     *   5–9  = widget hidden (spaces printed over it)
+     *
+     * We return early on the "hidden" phase so nothing is drawn.
+     * On the "visible" phase we fall through to normal drawing.
+     *
+     * WHY SPACES AND NOT ncplane_erase?
+     * ncplane_erase() clears the ENTIRE plane, which would wipe the
+     * clock and signal too.  Printing spaces over the exact columns
+     * erases only what we own.
+     *
+     * HOW MANY SPACES?
+     * "▰▰▰▱  12%" is about 10 visible columns.  15 spaces is safe.
      */
-    char fill[5] = "----";
-    for (int i = 0; i < bars; i++) {
-        fill[i] = '#';
+    if (percent < 15 && !charging) {
+        if ((tick % 10) >= 5) {
+            ghost_set(phone, COL_BG);
+            ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_COL,
+                              "               ");   /* 15 spaces */
+            return;
+        }
     }
 
+    /* ── DRAW THE FOUR GLYPHS ──────────────────────────────────────────── */
     /*
-     * snprintf() - Safe string formatting
+     * We draw each glyph individually rather than building a string first.
+     * This lets us set fg colour per-glyph in the future if needed
+     * (e.g. a gradient effect), and avoids the multi-byte bookkeeping
+     * of a manually assembled UTF-8 string.
      *
-     * C FUNCTION:
-     *   int snprintf(char *str, size_t size, const char *format, ...);
+     * ncplane_putstr_yx() advances the cursor after each call, so
+     * successive calls at the same (row, col+offset) aren't needed —
+     * we can just call ncplane_putstr() for glyphs 1–3 after positioning
+     * for glyph 0.  Using _yx for each is explicit and safer.
      *
-     * Like printf(), but writes to a string instead of the screen.
-     * The 'n' means it won't write more than 'size' bytes (prevents overflow).
-     *
-     * FORMAT SPECIFIERS:
-     *   %s   - String
-     *   %d   - Integer (decimal)
-     *   %x   - Integer (hexadecimal)
-     *   %f   - Floating point
-     *   %%   - Literal percent sign
-     *
-     * EXAMPLE:
-     *   snprintf(buf, sizeof(buf), "Hello %s, you are %d", "Alice", 25);
-     *   // buf now contains: "Hello Alice, you are 25"
+     * Each glyph (▰ or ▱) is 3 UTF-8 bytes and occupies 1 terminal column.
      */
+    for (int i = 0; i < 4; i++) {
+        ghost_set(phone, i < segs ? COL_GHOST_ON : COL_GHOST_OFF);
+        ncplane_putstr_yx(phone, STATUS_ROW,
+                          STATUS_BATTERY_COL + i,
+                          i < segs ? "▰" : "▱");
+    }
+
+    /* ── PERCENTAGE LABEL ──────────────────────────────────────────────── */
+    /*
+     * Printed two columns after the last glyph (col+4 = one space gap,
+     * col+5 onward = digits).  STATUS_BATTERY_PCT_COL should be defined
+     * as STATUS_BATTERY_COL + 5 in config.h.
+     *
+     * Colour rules:
+     *   < 15% and not charging  → COL_GHOST_LOW  (deep red)
+     *   charging                → COL_GHOST_ON   (normal, ⚡ prefix)
+     *   otherwise               → COL_GHOST_PCT  (near-invisible dark)
+     *
+     * C CONCEPT: char arrays and snprintf
+     * ─────────────────────────────────────
+     * We need to build "⚡75%" or " 75%" as a string.
+     * ⚡ (U+26A1) is 3 UTF-8 bytes.
+     * "⚡100%" = 3 + 4 + 1(NUL) = 8 bytes.
+     * "  100%" = 1 + 4 + 1(NUL) = 7 bytes.
+     * char label[16] gives comfortable margin.
+     */
+    char label[16];
+
     if (charging) {
-        /* Show a '+' to indicate charging */
-        snprintf(icon, sizeof(icon), "[%s]+ %d%%", fill, percent);
+        ghost_set(phone, COL_GHOST_ON);
+        snprintf(label, sizeof(label), "⚡%d%%", percent);
+    } else if (percent < 15) {
+        ghost_set(phone, COL_GHOST_LOW);
+        snprintf(label, sizeof(label), " %d%%", percent);
     } else {
-        snprintf(icon, sizeof(icon), "[%s] %d%%", fill, percent);
+        ghost_set(phone, COL_GHOST_PCT);
+        snprintf(label, sizeof(label), " %d%%", percent);
     }
 
-    /*
-     * Choose color based on battery level.
-     *
-     * C CONCEPT: TERNARY OPERATOR
-     * ---------------------------
-     * condition ? value_if_true : value_if_false
-     *
-     * This is a compact if/else that returns a value.
-     * EXAMPLE: int max = (a > b) ? a : b;
-     *
-     * Below we use if/else for clarity, but you could write:
-     *   uint32_t color = (percent < 20) ? COL_BATTERY_LOW :
-     *                    (percent < 50) ? COL_BATTERY_MED :
-     *                                     COL_BATTERY_GOOD;
-     */
-    uint32_t color;
-    if (percent < 20) {
-        color = COL_BATTERY_LOW;   /* Red - critical! */
-    } else if (percent < 50) {
-        color = COL_BATTERY_MED;   /* Yellow - getting low */
-    } else {
-        color = COL_BATTERY_GOOD;  /* Green - healthy */
-    }
-
-    /*
-     * NOTCURSES: Setting colors and drawing text
-     * ------------------------------------------
-     *
-     * ncplane_set_fg_rgb(plane, color)
-     *   Sets the FOREGROUND (text) color for subsequent drawing.
-     *   Color is 24-bit RGB: 0xRRGGBB (e.g., 0xFF0000 = red)
-     *
-     * ncplane_set_bg_rgb(plane, color)
-     *   Sets the BACKGROUND color for subsequent drawing.
-     *
-     * ncplane_putstr_yx(plane, row, col, string)
-     *   Draws a string starting at position (row, col).
-     *   "_yx" means the first coordinate is Y (row), second is X (col).
-     *
-     * NOTE: Colors stay set until you change them again!
-     */
-    ncplane_set_fg_rgb(phone, color);
-    ncplane_set_bg_rgb(phone, COL_BG);
-    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_COL, icon);
+    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_PCT_COL, label);
 }
 
 
 /* ───────────────────────────────────────────────────────────────────────────
- *  draw_signal() - Draw the cellular signal indicator on the status bar
+ *  draw_signal()
  * ───────────────────────────────────────────────────────────────────────────
  *
- *  WHAT IT DOES:
- *  Draws signal bars (▁▃▅▇) in the top-right of the screen.
- *  Bars are green if connected, grey if no signal.
+ *  OUTPUT EXAMPLES
+ *  ───────────────
+ *    4 bars   →  ●●●●
+ *    3 bars   →  ●●●○
+ *    1 bar    →  ●○○○
+ *    No signal→  ✕○○○   ← ✕ pulses dim/invisible
  *
- *  PARAMETERS:
- *    phone     - The plane to draw on
- *    bars      - Signal strength 0-4
- *    connected - true if registered to a network
+ *  NO-SIGNAL STATE
+ *  ───────────────
+ *  We don't replace the circles with text.  Instead the four circles all
+ *  go hollow and a ✕ (U+2715) appears in the column just before them,
+ *  pulsing between COL_GHOST_OFF and a slightly brighter dim grey
+ *  so it draws the eye without being alarming.
  *
- *  UNICODE NOTE:
- *  We use Unicode block characters of increasing height:
- *    ▁ (U+2581) - Lower one eighth block
- *    ▃ (U+2583) - Lower three eighths block
- *    ▅ (U+2585) - Lower five eighths block
- *    ▇ (U+2587) - Lower seven eighths block
- *
- *  HOW TO MODIFY:
- *    - Change bar characters: Edit the bar_chars array
- *    - Change colors: Edit COL_SIGNAL_* in config.h
- *    - Change position: Edit STATUS_SIGNAL_COL in config.h
- *    - Change "No Signal" text: Modify the putstr call below
+ *  PARAMETERS
+ *  ──────────
+ *    phone      ncplane to draw on
+ *    bars       signal strength 0–4
+ *    connected  true if registered to any network
+ *    tick       frame counter from render loop
  */
-static void draw_signal(struct ncplane *phone, int bars, bool connected) {
-    /*
-     * If not connected, show "No Signal" text instead of bars.
-     */
+static void draw_signal(struct ncplane *phone, int bars,
+                        bool connected, int tick) {
+
+    /* ── NO SIGNAL ─────────────────────────────────────────────────────── */
     if (!connected) {
-        ncplane_set_fg_rgb(phone, COL_SIGNAL_OFF);
-        ncplane_set_bg_rgb(phone, COL_BG);
-        ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_COL, "No Signal");
-        return;  /* Exit early - nothing more to do */
+        /*
+         * Pulse the ✕ between two shades of dark grey.
+         *
+         * tick % 8:  0-3 = dimmer shade, 4-7 = slightly brighter
+         * This is a very subtle pulse — enough to signal "scanning"
+         * without being distracting.
+         *
+         * STATUS_SIGNAL_PREFIX_COL = STATUS_SIGNAL_COL - 1
+         * (one column left of where the circles start)
+         */
+        uint32_t x_color = ((tick % 8) < 4) ? 0x242424 : 0x383838;
+        ghost_set(phone, x_color);
+        ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_PREFIX_COL, "✕");
+
+        /* All four circles hollow */
+        ghost_set(phone, COL_GHOST_OFF);
+        for (int i = 0; i < 4; i++) {
+            ncplane_putstr_yx(phone, STATUS_ROW,
+                              STATUS_SIGNAL_COL + i, "○");
+        }
+        return;
     }
 
+    /* ── CONNECTED ─────────────────────────────────────────────────────── */
     /*
-     * C CONCEPT: ARRAYS OF STRINGS
-     * ----------------------------
-     * const char *bar_chars[] creates an array of string pointers.
-     *
-     *   bar_chars[0] = "▁"
-     *   bar_chars[1] = "▃"
-     *   bar_chars[2] = "▅"
-     *   bar_chars[3] = "▇"
-     *
-     * Each element is a pointer to a string literal (stored in read-only memory).
-     *
-     * WHY USE STRINGS FOR SINGLE CHARACTERS?
-     * Unicode characters like ▁ are multi-byte in UTF-8 (3 bytes each).
-     * A regular 'char' can only hold 1 byte, so we use strings.
+     * Erase the prefix column in case we were previously disconnected
+     * and a ✕ is sitting there.
      */
-    const char *bar_chars[] = {"▁", "▃", "▅", "▇"};
-
-    ncplane_set_bg_rgb(phone, COL_BG);
+    ghost_set(phone, COL_BG);
+    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_PREFIX_COL, " ");
 
     /*
-     * Draw each bar, coloring it green if within signal strength,
-     * grey if above signal strength.
+     * Draw four circles: ● for active (i < bars), ○ for inactive.
+     *
+     * Both ● (U+25CF) and ○ (U+25CB) are 3-byte UTF-8 sequences that
+     * occupy exactly 1 terminal column each, so column arithmetic is
+     * straightforward: STATUS_SIGNAL_COL + i.
      */
     for (int i = 0; i < 4; i++) {
-        if (i < bars) {
-            /* This bar represents actual signal - show in green */
-            ncplane_set_fg_rgb(phone, COL_SIGNAL_ON);
-        } else {
-            /* This bar is above our signal level - show in grey */
-            ncplane_set_fg_rgb(phone, COL_SIGNAL_OFF);
-        }
-        ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_COL + i, bar_chars[i]);
+        ghost_set(phone, i < bars ? COL_GHOST_ON : COL_GHOST_OFF);
+        ncplane_putstr_yx(phone, STATUS_ROW,
+                          STATUS_SIGNAL_COL + i,
+                          i < bars ? "●" : "○");
     }
 }
-
-
 /* ───────────────────────────────────────────────────────────────────────────
  *  draw_status_bar() - Draw the complete status bar (battery + signal)
  * ───────────────────────────────────────────────────────────────────────────
@@ -660,7 +719,7 @@ static void draw_signal(struct ncplane *phone, int bars, bool connected) {
  *  drawing multiple elements. Callers just call draw_status_bar()
  *  without worrying about the details.
  */
-static void draw_status_bar(struct ncplane *phone) {
+static void draw_status_bar(struct ncplane *phone, int tick) {
     /*
      * Get current hardware status.
      *
@@ -674,8 +733,8 @@ static void draw_status_bar(struct ncplane *phone) {
     cellular_status_t cell = hardware_get_cellular();
 
     /* Draw both indicators */
-    draw_battery(phone, batt.percent, batt.charging);
-    draw_signal(phone, cell.signal_bars, cell.connected);
+    draw_battery(phone, batt.percent, batt.charging, tick);
+    draw_signal(phone, cell.signal_bars, cell.connected, tick);
 }
 
 
@@ -704,7 +763,7 @@ static void draw_status_bar(struct ncplane *phone) {
  *    - Remove footer: Delete the footer drawing code at the bottom
  *    - Add a header title: Add ncplane_putstr_yx() after the border
  */
-static void draw_frame(struct ncplane *phone) {
+static void draw_frame(struct ncplane *phone, int tick) {
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
 
@@ -726,18 +785,20 @@ static void draw_frame(struct ncplane *phone) {
     if (rows < FRAME_MIN_ROWS || cols < FRAME_MIN_COLS) return;
 
     /*
-     * STEP 1: Fill the entire plane with background color
-     * ----------------------------------------------------
-     * We loop through every cell and put a space character with our
-     * background color. This ensures consistent background everywhere.
+     * STEP 1: Fill the interior with background color
+     * ------------------------------------------------
+     * We only fill the cells INSIDE the border (rows 1..rows-2,
+     * cols 1..cols-2) with COL_BG.  The border cells (row 0, last row,
+     * col 0, last col) are left at the default so they don't show a
+     * coloured halo against the terminal background.
      *
      * ncplane_putchar_yx(plane, row, col, char)
      *   Draws a single character at the specified position.
      *   Uses the currently-set fg/bg colors.
      */
     ncplane_set_bg_rgb(phone, COL_BG);
-    for (unsigned y = 0; y < rows; y++) {
-        for (unsigned x = 0; x < cols; x++) {
+    for (unsigned y = 1; y < rows - 1; y++) {
+        for (unsigned x = 1; x < cols - 1; x++) {
             ncplane_putchar_yx(phone, y, x, ' ');
         }
     }
@@ -785,7 +846,7 @@ static void draw_frame(struct ncplane *phone) {
      * their colors. If channels=0, cells get default (transparent) colors.
      */
     uint64_t channels = 0;
-    ncchannels_set_bg_rgb(&channels, COL_BG);
+    ncchannels_set_bg_default(&channels);
     ncchannels_set_fg_rgb(&channels, COL_BORDER);
 
     /*
@@ -842,7 +903,7 @@ static void draw_frame(struct ncplane *phone) {
     /*
      * STEP 3: Draw the status bar
      */
-    draw_status_bar(phone);
+    draw_status_bar(phone, tick);
 
     /*
      * STEP 4: Draw separator lines
@@ -856,27 +917,32 @@ static void draw_frame(struct ncplane *phone) {
      *   ┫ - Right T-junction (connects to right border)
      */
     ncplane_set_fg_rgb(phone, COL_SEPARATOR);
-    ncplane_set_bg_rgb(phone, COL_BG);
 
     /* Top separator (below status bar, at row 2) */
+    /* T-junctions sit on the border edge (col 0 / cols-1), so use
+       default bg so they don't leak COL_BG outside the border. */
+    ncplane_set_bg_default(phone);
     ncplane_putstr_yx(phone, 2, 0, "┣");
+    ncplane_putstr_yx(phone, 2, cols - 1, "┫");
+
+    /* Interior separator segments use COL_BG */
+    ncplane_set_bg_rgb(phone, COL_BG);
     for (unsigned x = 1; x < cols - 1; x++) {
         ncplane_putstr_yx(phone, 2, x, "━");
     }
-    ncplane_putstr_yx(phone, 2, cols - 1, "┫");
 
     /* Bottom separator (above footer, at second-to-last row) */
-    ncplane_putstr_yx(phone, rows - 2, 0, "┣");
-    for (unsigned x = 1; x < cols - 1; x++) {
-        ncplane_putstr_yx(phone, rows - 2, x, "━");
-    }
-    ncplane_putstr_yx(phone, rows - 2, cols - 1, "┫");
+   // ncplane_putstr_yx(phone, rows - 2, 0, "┣");
+   // for (unsigned x = 1; x < cols - 1; x++) {
+   //     ncplane_putstr_yx(phone, rows - 2, x, "━");
+   // }
+  //  ncplane_putstr_yx(phone, rows - 2, cols - 1, "┫");
 
     /*
      * STEP 5: Draw footer text
      */
-    ncplane_set_fg_rgb(phone, COL_FOOTER_TEXT);
-    ncplane_putstr_yx(phone, rows - 1, 1, TEXT_FOOTER);
+    //ncplane_set_fg_rgb(phone, COL_FOOTER_TEXT);
+   // ncplane_putstr_yx(phone, rows - 1, 1, TEXT_FOOTER);
 }
 
 
@@ -1017,6 +1083,12 @@ int main(void) {
     screen_id current_screen = SCREEN_HOME;
 
     /*
+     * Frame counter for animations (low battery blink, no-signal pulse).
+     * Incremented each frame; used by draw_battery() and draw_signal().
+     */
+    int tick = 0;
+
+    /*
      * STEP 6: MAIN EVENT LOOP
      * -----------------------
      * This is the heart of any interactive application.
@@ -1042,7 +1114,8 @@ int main(void) {
          * First draw the frame (border, status bar, footer).
          * Then draw the active screen's content.
          */
-        draw_frame(phone);
+        draw_frame(phone, tick);
+        tick++;
 
         /*
          * C CONCEPT: SWITCH STATEMENT

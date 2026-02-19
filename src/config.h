@@ -65,6 +65,17 @@
 #ifndef BLACKHAND_CONFIG_H
 #define BLACKHAND_CONFIG_H
 
+
+/* 
+Nav bar
+*/
+
+#define COL_GHOST_ON            0xE0E0E0
+#define COL_GHOST_OFF           0x1E1E1E
+#define COL_GHOST_PCT           0x2C2C2C
+#define COL_GHOST_LOW           0x7F1D1D
+#define STATUS_BATTERY_PCT_COL  (STATUS_BATTERY_COL + 5)
+#define STATUS_SIGNAL_PREFIX_COL (STATUS_SIGNAL_COL - 1)
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PHONE DIMENSIONS
  * ═══════════════════════════════════════════════════════════════════════════
@@ -128,7 +139,7 @@
  * Current: Very dark grey (almost black)
  * Try: 0x000000 (pure black), 0x1a1a2e (dark blue), 0x0d1117 (GitHub dark)
  */
-#define COL_BG              0x111111
+#define COL_BG              0x1a1a2e
 
 /* ─── Border / Frame ───────────────────────────────────────────────────── */
 
@@ -139,7 +150,7 @@
  * Current: Muted sage green
  * Try: 0x5c6370 (grey), 0x61afef (blue), 0x98c379 (green)
  */
-#define COL_BORDER          0x8b9a8c
+#define COL_BORDER          0xE0E0E0
 
 /*
  * COL_SEPARATOR - Internal Separator Lines
@@ -148,7 +159,7 @@
  * Current: Medium grey (subtle)
  * Try: 0x333333 (darker), 0x777777 (lighter)
  */
-#define COL_SEPARATOR       0x555555
+#define COL_SEPARATOR       0xE0E0E0
 
 /* ─── Status Bar (Battery & Signal) ────────────────────────────────────── */
 
