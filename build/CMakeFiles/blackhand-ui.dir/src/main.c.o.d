@@ -180,4 +180,5 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o: \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncseqs.h \
   /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
   /Users/mrnoori/Desktop/blackhandUI/src/config.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/hardware.h
+  /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.h

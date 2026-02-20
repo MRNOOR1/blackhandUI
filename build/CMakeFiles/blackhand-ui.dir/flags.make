@@ -4,9 +4,9 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = -isystem /opt/homebrew/Cellar/notcurses/3.0.17/include
+C_INCLUDES = -I/Users/mrnoori/Desktop/blackhandUI/src -isystem /opt/homebrew/Cellar/notcurses/3.0.17/include
 
-C_FLAGSarm64 =  -arch arm64 -D_DARWIN_C_SOURCE
+C_FLAGSarm64 = -g -g -arch arm64 -D_DARWIN_C_SOURCE
 
-C_FLAGS =  -arch arm64 -D_DARWIN_C_SOURCE
+C_FLAGS = -g -g -arch arm64 -D_DARWIN_C_SOURCE
 

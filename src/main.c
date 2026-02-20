@@ -1,404 +1,463 @@
 /*
- * ============================================================================
- *  main.c — BlackHand UI Entry Point
- * ============================================================================
+ * ╔══════════════════════════════════════════════════════════════════════════╗
+ * ║  main.c — BlackHand OS  ·  Entry Point & UI Engine                     ║
+ * ╚══════════════════════════════════════════════════════════════════════════╝
  *
- *  WHAT IS THIS FILE?
- *  ------------------
- *  This is the main entry point for the BlackHand phone-style terminal UI.
- *  When you run the program, execution starts here at the main() function.
- *  This file handles:
- *    - Initializing the Notcurses library (our terminal graphics engine)
- *    - Creating the "phone" display area centered on screen
- *    - Drawing the border, status bar (battery/signal), and screen content
- *    - Processing keyboard input in an event loop
- *    - Cleaning up resources when the program exits
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *  HOW TO READ THESE COMMENTS
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *  Every C and Notcurses concept is explained the first time it appears,
+ *  then used without repetition ater that.  Read this file top-to-bottom
+ *  once before building any new screen — after that you will have everything
+ *  you need to write any view independently.
  *
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *  ARCHITECTURE OVERVIEW
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  *
- *  WHAT IS NOTCURSES?
- *  ------------------
- *  Notcurses is a modern C library for creating rich terminal user interfaces.
- *  Think of it as a way to draw graphics in your terminal using text characters.
+ *  ┌─────────────────────────────────────────────────────────────┐
+ *  │  main()                                                     │
+ *  │    │                                                        │
+ *  │    ├── hardware_init()          read battery/signal         │
+ *  │    ├── notcurses_init()         start terminal graphics     │
+ *  │    ├── create_phone_plane()     our drawing canvas          │
+ *  │    │                                                        │
+ *  │    └── LOOP ─────────────────────────────────────────────  │
+ *  │            │                                                │
+ *  │            ├── draw_frame()     border + status bar        │
+ *  │            ├── screen_*_draw()  active screen content      │
+ *  │            ├── notcurses_render() push to terminal         │
+ *  │            └── handle input → update screen_id            │
+ *  └─────────────────────────────────────────────────────────────┘
  *
- *  Key concepts:
- *    - PLANES: Rectangular drawing surfaces (like layers in Photoshop)
- *    - CELLS:  Individual character positions with color and style
- *    - RENDER: Pushing your drawings to the actual terminal display
+ *  TO ADD A NEW SCREEN — complete checklist:
+ *  ─────────────────────────────────────────
+ *    1.  Add   SCREEN_CALLS       to the screen_id enum in ui.h
+ *    2.  Add   "CALLS"            to the screen_name switch in main()
+ *    3.  Create screen_calls.c    with screen_calls_draw() and
+ *                                      screen_calls_input()
+ *    4.  Declare both functions   in ui.h
+ *    5.  Add a draw case          to the draw switch in the main loop
+ *    6.  Add an input case        to the input switch in the main loop
+ *    7.  Route a key to it        in whichever screen_*_input() navigates there
  *
- *  Documentation: https://notcurses.com/
- *  GitHub: https://github.com/dankamongmen/notcurses
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *  RECOMMENDED DISPLAY DIMENSIONS  (HyperPixel 4.0  480 × 800 portrait)
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  *
+ *  Font: Iosevka Term  ss08 variant  (thin, razor-precise, luxury feel)
+ *  Install: build from https://github.com/be5invis/Iosevka
+ *  Or use pre-built: apt install fonts-iosevka  (may not include ss08)
  *
- *  C CONCEPTS YOU'LL LEARN IN THIS FILE:
- *  -------------------------------------
- *  1. #include directives - importing code from other files
- *  2. Functions - reusable blocks of code
- *  3. Pointers (*) - variables that store memory addresses
- *  4. Structs - grouping related data together
- *  5. The main() function - where every C program starts
- *  6. while loops - repeating code until a condition is false
- *  7. switch/case - choosing between multiple options
+ *  Set in /etc/default/console-setup:
+ *    FONTFACE="Iosevka Term"
+ *    FONTSIZE="12x20"         ← approx 40 cols × 40 rows on HyperPixel 4.0
  *
+ *  Alternative: Departure Mono  — bitmap-inspired, unique rhythm, very
+ *  distinctive.  https://departuremono.com/  (free, open source)
  *
- *  HOW TO MODIFY THIS CODE:
- *  ------------------------
- *  - To change colors: Edit config.h (all colors defined there)
- *  - To resize the phone: Change PHONE_ROWS/PHONE_COLS in config.h
- *  - To add a new screen: See the switch statement in the main loop
- *  - To change status bar position: Edit STATUS_ROW in config.h
+ *  Vertu Signature S had a 240×320 display (3:4 portrait ratio, very tall
+ *  and narrow).  To match that feel:
  *
- * ============================================================================
+ *    #define PHONE_COLS  36    // ~90 % of a 40-col terminal
+ *    #define PHONE_ROWS  38    // ~95 % of a 40-row terminal
+ *
+ *  This leaves a 2-cell margin around the frame — enough for the DEV_LABEL
+ *  corner text without crowding the border.  The 36:38 ratio is close to
+ *  the Signature S's tall-narrow silhouette.
+ *
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *  CONTENT AREA — where your screen functions draw
+ *  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ *  Row 0          ┏━━━━━━━━━━━━━━━━━━┓  top border
+ *  Row 1          ┃ 09:41    ▰▰▰▱ ●●┃  status bar   (STATUS_ROW = 1)
+ *  Row 2          ┣━━━━ HOME ━━━━━━━┫  separator
+ *  Rows 3..35     ┃                  ┃  CONTENT AREA  ← screens draw here
+ *  Row 36         ┗━━━━━━━━━━━━━━━━━━┛  bottom border
+ *
+ *  Content area:
+ *    First row  = 3                  (CONTENT_ROW_START in config.h)
+ *    Last row   = PHONE_ROWS - 2     (last interior row above bottom border)
+ *    First col  = 2                  (one inside the border + one margin)
+ *    Last col   = PHONE_COLS - 3     (one inside border + one margin)
+ *    Inner width = PHONE_COLS - 4    (usable columns per row)
  */
 
-/* ═══════════════════════════════════════════════════════════════════════════
- *  SECTION 1: HEADER INCLUDES
- * ═══════════════════════════════════════════════════════════════════════════
- *
- *  In C, we use #include to import code from other files. This is similar to
- *  "import" in Python or "require" in JavaScript.
- *
- *  Two types of includes:
- *    #include <file.h>  - System/library headers (in system directories)
- *    #include "file.h"  - Our own project headers (in our source directory)
- *
- *  Headers (.h files) contain DECLARATIONS - they tell the compiler what
- *  functions and types exist. The actual code is in .c files.
- */
 
-/*
- * <locale.h> - C Standard Library
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 1: INCLUDES
  *
- * PURPOSE: Allows setting the program's "locale" (language/region settings).
- * WHY WE NEED IT: We call setlocale() so the terminal correctly displays
- *                 Unicode characters like our box-drawing symbols (┏━┓).
+ *  C CONCEPT: #include
+ *  ────────────────────
+ *  #include copies the contents of another file into this one at compile
+ *  time.  Think of it as "paste this code here before compiling."
  *
- * KEY FUNCTION:
- *   setlocale(LC_ALL, "") - Use the user's system locale settings
+ *  Two forms:
+ *    #include <file.h>   — system/library headers, searched in system paths
+ *    #include "file.h"   — your own headers, searched from current directory
  *
- * EXAMPLE:
- *   setlocale(LC_ALL, "");           // Use system default (recommended)
- *   setlocale(LC_ALL, "en_US.UTF-8"); // Force US English UTF-8
- */
+ *  Headers (.h files) contain DECLARATIONS — they tell the compiler what
+ *  functions and types exist without providing their full implementation.
+ *  The compiler needs declarations before it can compile calls to those
+ *  functions.  The actual implementations live in .c files.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
 #include <locale.h>
+/*  Provides setlocale().  Must be called before any Unicode output so the
+ *  C runtime uses the correct character encoding (UTF-8 on the Pi).
+ *  Without it, multi-byte characters like ▰ ● ┏ display as garbage.        */
 
-/*
- * <notcurses/notcurses.h> - Notcurses Library (Third-Party)
- *
- * PURPOSE: The main header for the Notcurses terminal graphics library.
- * WHY WE NEED IT: Provides ALL Notcurses types and functions.
- *
- * KEY TYPES:
- *   struct notcurses     - The main library context (like a "game engine")
- *   struct ncplane       - A drawing surface (like a canvas or layer)
- *   struct ncplane_options - Configuration for creating new planes
- *   nccell               - A single character cell with color and style
- *   ncinput              - Keyboard/mouse input data
- *
- * KEY FUNCTIONS:
- *   notcurses_init()       - Start the library
- *   notcurses_stop()       - Shut down the library
- *   notcurses_render()     - Display everything to the terminal
- *   notcurses_get_blocking() - Wait for keyboard input
- *   ncplane_putstr_yx()    - Draw text at a specific position
- *   ncplane_set_fg_rgb()   - Set text (foreground) color
- *   ncplane_set_bg_rgb()   - Set background color
- */
 #include <notcurses/notcurses.h>
+/*  The entire Notcurses API.  Key types you will use in every screen:
+ *
+ *  struct notcurses *nc
+ *    The engine — one per program.  Created by notcurses_init(),
+ *    destroyed by notcurses_stop().  Manages the terminal, all planes,
+ *    the render pipeline, and input.
+ *
+ *  struct ncplane *plane
+ *    A rectangular drawing surface — our canvas.  Like a transparent layer
+ *    in Photoshop.  Multiple planes exist simultaneously and composite on
+ *    render.  The standard plane (stdplane) covers the whole terminal.
+ *    Every screen_*_draw() function receives the phone plane and draws on it.
+ *
+ *  nccell
+ *    One character cell: glyph + fg colour + bg colour + style flags.
+ *    Used directly when working with box-drawing borders.
+ *
+ *  ncinput
+ *    One keyboard or mouse event.  Fields: .id (key code), .evtype,
+ *    .modifiers (shift/ctrl/alt), .y and .x (mouse position).             */
 
-/*
- * <stdint.h> - C Standard Library
- *
- * PURPOSE: Provides fixed-width integer types.
- * WHY WE NEED IT: Notcurses uses uint32_t for colors and key codes.
- *
- * KEY TYPES:
- *   uint32_t - Unsigned 32-bit integer (0 to 4,294,967,295)
- *   int32_t  - Signed 32-bit integer (-2 billion to +2 billion)
- *   uint8_t  - Unsigned 8-bit integer (0 to 255, good for bytes)
- *
- * WHY "UNSIGNED"?
- *   - "signed" integers can be negative (-5, -100, etc.)
- *   - "unsigned" integers are always >= 0 (useful for counts, sizes)
- *
- * EXAMPLE:
- *   uint32_t color = 0xFF0000;  // Red in RGB (no negative colors!)
- *   int32_t temperature = -40;  // Can be negative
- */
 #include <stdint.h>
+/*  Fixed-width integer types.  Notcurses uses these for colours and keys:
+ *
+ *  uint32_t  unsigned 32-bit (0 – 4,294,967,295)
+ *            Used for 0xRRGGBB colours and Unicode key codes.
+ *
+ *  uint64_t  unsigned 64-bit
+ *            Used for Notcurses "channels" (packed fg+bg colour pair).
+ *
+ *  uint8_t   unsigned 8-bit (0 – 255)
+ *            Useful for individual R, G, B components when doing colour math.
+ *
+ *  WHY NOT JUST USE 'int'?
+ *  Plain 'int' is platform-dependent — 16, 32, or 64 bits depending on
+ *  CPU and compiler.  uint32_t is always exactly 32 bits, which Notcurses
+ *  requires for its packed colour encoding.                                  */
 
-/*
- * <stdio.h> - C Standard Library (Standard Input/Output)
- *
- * PURPOSE: Basic input/output operations (printing, reading).
- * WHY WE NEED IT: We use fprintf(stderr, ...) to print error messages.
- *
- * KEY FUNCTIONS:
- *   printf(format, ...)         - Print to standard output (stdout)
- *   fprintf(file, format, ...)  - Print to a specific file/stream
- *   snprintf(buf, size, format, ...) - Print to a string buffer (safe)
- *
- * KEY STREAMS:
- *   stdout - Standard output (normal program output)
- *   stderr - Standard error (error messages, separate from stdout)
- *
- * EXAMPLE:
- *   printf("Hello %s!\n", "World");      // Output: Hello World!
- *   fprintf(stderr, "Error: %d\n", 42);  // Prints error to stderr
- */
 #include <stdio.h>
+/*  Standard I/O.  Functions used here:
+ *    fprintf(stderr, "msg\n")           print errors to stderr
+ *    snprintf(buffer, size, fmt, ...)   format a string into a char array   */
 
-/*
- * <string.h> - C Standard Library
- *
- * PURPOSE: String manipulation functions.
- * WHY WE NEED IT: We use strlen() to measure text length for alignment.
- *
- * KEY FUNCTIONS:
- *   strlen(str)              - Get length of string (not including \0)
- *   strcpy(dest, src)        - Copy string (UNSAFE - use strncpy instead)
- *   strncpy(dest, src, n)    - Copy at most n characters (SAFER)
- *   strcmp(a, b)             - Compare strings (0 if equal)
- *   strcat(dest, src)        - Append src to dest (UNSAFE)
- *
- * C STRINGS EXPLAINED:
- *   In C, strings are arrays of characters ending with '\0' (null byte).
- *   "Hello" is actually stored as: ['H','e','l','l','o','\0']
- *
- * EXAMPLE:
- *   const char *name = "Alice";
- *   size_t len = strlen(name);  // len = 5 (doesn't count '\0')
- */
 #include <string.h>
+/*  String functions.  Used here:
+ *    strlen(str)          count bytes in str (not counting '\0')
+ *    strcat(dest, src)    append src to dest (dest must have room!)          */
 
-/*
- * <stdbool.h> - C Standard Library (C99+)
- *
- * PURPOSE: Provides the 'bool' type with 'true' and 'false' values.
- * WHY WE NEED IT: Makes code more readable than using 0/1 for booleans.
- *
- * WHAT IT DEFINES:
- *   bool  - A boolean type (actually just an int underneath)
- *   true  - The value 1
- *   false - The value 0
- *
- * EXAMPLE:
- *   bool is_charging = true;
- *   if (is_charging) {
- *       printf("Battery is charging\n");
- *   }
- *
- * NOTE: Before C99, programmers used int with 0/1, or defined their own.
- */
 #include <stdbool.h>
+/*  Provides 'bool', 'true' (= 1), and 'false' (= 0).
+ *  Without this header you'd write int charging = 1 instead of
+ *  bool charging = true — less readable and more error-prone.               */
 
-/*
- * "ui.h" - Our Project Header
- *
- * PURPOSE: Declares screen-related functions and types.
- * CONTAINS:
- *   - screen_id enum (SCREEN_HOME, SCREEN_SETTINGS, etc.)
- *   - screen_home_draw() declaration
- *   - screen_settings_draw() declaration
- *   - screen_home_input() declaration
- *
- * WHY SEPARATE HEADER?
- *   Headers let us DECLARE functions in one place and DEFINE them elsewhere.
- *   This way, main.c can call screen_home_draw() even though the actual
- *   code is in screen_home.c. The compiler sees the declaration in ui.h
- *   and trusts that the definition exists somewhere.
- */
 #include "ui.h"
+/*  Our screen system.  Contains:
+ *    typedef enum { SCREEN_HOME, SCREEN_SETTINGS, … } screen_id;
+ *    Declarations for screen_*_draw() and screen_*_input() functions.
+ *
+ *  An enum is a set of named integer constants.  The compiler assigns
+ *  sequential values starting from 0 unless you specify otherwise.
+ *  Using enum names instead of raw integers makes switch statements
+ *  self-documenting and lets the compiler warn about unhandled cases.       */
 
-/*
- * "config.h" - Our Project Header
- *
- * PURPOSE: Central configuration file for the entire UI.
- * CONTAINS:
- *   - PHONE_ROWS, PHONE_COLS (phone dimensions)
- *   - COL_* (all color values as 0xRRGGBB hex)
- *   - Layout constants (row positions, column offsets)
- *   - Text strings (labels, button hints)
- *
- * WHY A SEPARATE CONFIG FILE?
- *   Putting all settings in one place makes it easy to:
- *   - Change the color theme by editing one file
- *   - Resize the UI without hunting through code
- *   - Translate text labels to another language
- */
 #include "config.h"
+/*  All magic numbers in one place.  Add to this file whenever you need
+ *  a new constant — never hardcode numbers directly in .c files.
+ *
+ *  Key constants defined here:
+ *    PHONE_ROWS, PHONE_COLS          frame dimensions
+ *    STATUS_ROW          = 1         status bar row
+ *    STATUS_BATTERY_COL  = 2         battery glyphs start column
+ *    STATUS_BATTERY_PCT_COL          percentage label column
+ *    CONTENT_ROW_START   = 3         first row screens may draw on
+ *    FRAME_MIN_ROWS, FRAME_MIN_COLS  safety limits before drawing
+ *    COL_BG              0x080808    background (near-black)
+ *    COL_BORDER          0x242424    border colour
+ *    COL_SEPARATOR       0x1C1C1C    separator line colour
+ *    COL_GHOST_ON        0xE0E0E0    active glyph, off-white
+ *    COL_GHOST_OFF       0x1E1E1E    inactive glyph, near-invisible
+ *    COL_GHOST_PCT       0x2C2C2C    percentage/dim text
+ *    COL_GHOST_LOW       0x7F1D1D    low battery warning, deep red
+ *    COL_PLACEHOLDER     0x333333    placeholder text
+ *    COL_HINT            0x2A2A2A    key-hint text
+ *    COL_DEV_LABEL       0x1A1A1A    corner dev tag                        */
 
-/*
- * "hardware.h" - Our Project Header
+#include "platform/hardware.h"
+#include "services/settings_service.h"
+/*  Battery and cellular abstraction layer.  Currently stubs; later wraps
+ *  real I2C reads (battery gauge) and UART/AT commands (cellular modem).
  *
- * PURPOSE: Hardware abstraction layer for battery and cellular status.
- * CONTAINS:
- *   - battery_status_t struct (percent, charging)
- *   - cellular_status_t struct (signal_bars, connected, carrier)
- *   - hardware_get_battery() - Get current battery status
- *   - hardware_get_cellular() - Get current signal status
- *   - hardware_init() / hardware_cleanup() - Setup/teardown
+ *  Types provided:
+ *    battery_status_t  { int percent; bool charging; }
+ *    cellular_status_t { int signal_bars; bool connected; char carrier[32]; }
  *
- * WHY ABSTRACT HARDWARE?
- *   By defining an interface here, we can:
- *   - Use fake/simulated values during development
- *   - Later replace with real hardware reads (I2C, UART, GPIO)
- *   - The UI code doesn't need to change - only hardware.c
- */
-#include "hardware.h"
+ *  Functions provided:
+ *    void hardware_init()
+ *    void hardware_cleanup()
+ *    battery_status_t  hardware_get_battery()
+ *    cellular_status_t hardware_get_cellular()                               */
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
- *  SECTION 2: HELPER FUNCTIONS
- * ═══════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 2: PRIMITIVE DRAWING HELPERS
  *
- *  C CONCEPT: FUNCTIONS
- *  --------------------
- *  A function is a reusable block of code. Format:
+ *  These are the building blocks every screen reuses.  Understand these
+ *  five functions and you can draw anything in any screen without help.
  *
- *    return_type function_name(parameters) {
- *        // code here
- *        return value;  // if return_type is not void
- *    }
+ *  C CONCEPT: static functions
+ *  ────────────────────────────
+ *  'static' before a function = "private to this .c file."
+ *  No other file can call it.  This prevents name collisions between files
+ *  and signals that this is internal plumbing, not a public API.
  *
- *  EXAMPLE:
- *    int add(int a, int b) {
- *        return a + b;
- *    }
- *    int result = add(3, 4);  // result = 7
+ *  C CONCEPT: function parameters and pointers
+ *  ─────────────────────────────────────────────
+ *  Parameters are copies of the values passed in (pass-by-value) EXCEPT
+ *  for pointers.  A pointer holds a MEMORY ADDRESS, not the data itself.
  *
+ *  Analogy: a pointer is like a street address.  The address (4 bytes)
+ *  is cheap to copy.  What lives at that address (the house = the plane
+ *  struct) is NOT copied — both caller and function access the same data.
  *
- *  C CONCEPT: STATIC FUNCTIONS
- *  ---------------------------
- *  The 'static' keyword before a function means "private to this file."
- *  Other .c files cannot call this function. It's like making a function
- *  "private" in object-oriented languages.
+ *  'struct ncplane *n'  — n is a pointer to an ncplane.  Passing n gives
+ *  the function direct access to the plane so it can draw on it.
  *
- *  WHY USE STATIC?
- *  - Prevents name collisions (two files can have static functions with same name)
- *  - Signals to readers "this is internal, not part of the public API"
- *  - May help the compiler optimize
- */
+ *  'const char *text'   — pointer to a read-only string.  'const' prevents
+ *  accidental modification.  String literals ("HOME") live in read-only
+ *  memory and must always be accessed through const char *.
+ * ══════════════════════════════════════════════════════════════════════════ */
 
-/* ───────────────────────────────────────────────────────────────────────────
- *  create_phone_plane() - Create the centered phone display area
- * ───────────────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ghost_set()  —  Set foreground colour, lock background to COL_BG
  *
- *  WHAT IT DOES:
- *  Creates a new "plane" (drawing surface) centered on the terminal.
- *  This plane represents our phone screen where we draw everything.
+ *  The single most-called function in the codebase.  Every draw operation
+ *  calls this (or ghost_text which calls it internally) before placing text.
  *
- *  NOTCURSES CONCEPT: PLANES
- *  -------------------------
- *  A "plane" is a rectangular grid of character cells that you draw on.
- *  Think of planes like transparent layers in Photoshop:
- *    - You can have multiple planes stacked on top of each other
- *    - Each plane can be positioned anywhere on the terminal
- *    - When you render, all planes are composited together
+ *  NOTCURSES: ncplane_set_fg_rgb(plane, colour)
+ *  ─────────────────────────────────────────────
+ *  Sets the foreground (glyph/text) colour for ALL subsequent draws on
+ *  'plane' until changed again.  Colour is 0xRRGGBB — three 8-bit channels
+ *  packed into the lower 24 bits of a uint32_t:
+ *    bits 23-16 = Red   (0x00–0xFF)
+ *    bits 15-8  = Green (0x00–0xFF)
+ *    bits 7-0   = Blue  (0x00–0xFF)
  *
- *  The "standard plane" (stdplane) covers the entire terminal and always
- *  exists. We create a CHILD plane on top of it for our phone UI.
+ *  NOTCURSES: ncplane_set_bg_rgb(plane, colour)
+ *  ─────────────────────────────────────────────
+ *  Same as above for background — the rectangle of colour behind each glyph.
  *
- *  C CONCEPT: POINTERS
- *  -------------------
- *  "struct ncplane *std" means "std is a pointer to an ncplane."
+ *  IMPORTANT: Colours are STICKY — they remain set until explicitly changed.
+ *  Never assume the colour is what you set earlier; other drawing calls
+ *  may have changed it.  Always set colour immediately before drawing.
+ * ────────────────────────────────────────────────────────────────────────── */
+static void ghost_set(struct ncplane *n, uint32_t fg) {
+    ncplane_set_fg_rgb(n, fg);
+    ncplane_set_bg_rgb(n, COL_BG);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ghost_text()  —  Set colour and draw a string at (row, col)
  *
- *  A pointer holds a MEMORY ADDRESS, not the actual data.
- *  Think of it like a street address vs. the actual house:
- *    - The address (pointer) tells you WHERE the house is
- *    - The house (data) is the actual thing at that location
+ *  Use this for every piece of text your screens draw.
  *
- *  Why use pointers?
- *    - Efficiency: Pass the address instead of copying large data
- *    - Modification: Functions can modify data at that address
- *    - Dynamic memory: Create data whose size isn't known at compile time
+ *  NOTCURSES: ncplane_putstr_yx(plane, row, col, string)
+ *  ──────────────────────────────────────────────────────
+ *  Draws 'string' starting at cell (row, col) using the currently-set
+ *  colours.  The cursor advances right after each glyph.
  *
- *  SYNTAX:
- *    int x = 42;       // x is an integer with value 42
- *    int *p = &x;      // p is a pointer holding the address of x
- *    *p = 100;         // Dereference p, change x to 100
- *    printf("%d", x);  // Prints 100
+ *  "_yx" ordering: Y (row) comes first, X (col) second.  Notcurses
+ *  consistently uses (row, col) ordering throughout its API, never (x, y).
+ *  Row 0 = top of plane.  Col 0 = left edge of plane.
  *
+ *  UNICODE NOTE:
+ *  C strings are byte arrays.  ▰ is 3 UTF-8 bytes, ● is 3 bytes, etc.
+ *  Notcurses handles UTF-8 parsing internally — you just pass the string.
+ *  Each Unicode character typically occupies 1 terminal column (some CJK
+ *  characters occupy 2).  Column arithmetic uses terminal columns, not bytes.
  *
- *  PARAMETERS:
- *    std - Pointer to the standard plane (the full terminal)
+ *  USAGE EXAMPLES:
+ *    ghost_text(p, 4, 2, COL_GHOST_ON,  "BATTERY");
+ *    ghost_text(p, 4, 12, COL_GHOST_PCT, "▰▰▰▱  75%");
+ *    ghost_text(p, 6, 2, COL_GHOST_LOW, "LOW SIGNAL");
+ * ────────────────────────────────────────────────────────────────────────── */
+static void ghost_text(struct ncplane *n, int row, int col,
+                       uint32_t colour, const char *text) {
+    ghost_set(n, colour);
+    ncplane_putstr_yx(n, row, col, text);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ghost_hline()  —  Draw a horizontal run of one repeated glyph
  *
- *  RETURNS:
- *    Pointer to the new phone plane, or NULL if creation failed
+ *  Use for content separators, progress indicators, or decorative rules
+ *  within a screen.  Not for the status separator (draw_frame handles that).
  *
- *  HOW TO MODIFY:
- *    - Change phone size: Edit PHONE_ROWS/PHONE_COLS in config.h
- *    - Change position: Modify the start_y/start_x calculation
- *    - Add a plane name: Change the .name field for debugging
- */
+ *  C CONCEPT: for loops
+ *  ─────────────────────
+ *  for (initialiser; condition; step) { body }
+ *
+ *  Execution order:
+ *    1.  initialiser runs once before the loop starts
+ *    2.  condition is checked before each iteration — exit when false
+ *    3.  body executes
+ *    4.  step executes
+ *    5.  back to 2
+ *
+ *  'i++' is shorthand for i = i + 1.
+ *  'i < length' means the loop runs for i = 0, 1, 2, … length-1.
+ *  Total iterations = length.
+ *
+ *  USAGE:
+ *    ghost_hline(p, 10, 2, 32, "─", COL_SEPARATOR);
+ *    // draws 32 thin-line glyphs starting at row 10, col 2
+ * ────────────────────────────────────────────────────────────────────────── */
+static void ghost_hline(struct ncplane *n, int row, int col,
+                        int length, const char *glyph, uint32_t colour) {
+    ghost_set(n, colour);
+    for (int i = 0; i < length; i++) {
+        ncplane_putstr_yx(n, row, col + i, glyph);
+    }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ghost_fill_rect()  —  Fill a rectangle with a single character
+ *
+ *  Use to:
+ *    • Clear a sub-region before redrawing it (fill with ' ', COL_BG, COL_BG)
+ *    • Draw a highlight bar for a selected menu item
+ *    • Paint a coloured background block
+ *
+ *  C CONCEPT: ncplane_putchar_yx vs ncplane_putstr_yx
+ *  ───────────────────────────────────────────────────
+ *  putchar_yx draws a single ASCII character (one byte, value 0-127).
+ *  putstr_yx  draws a null-terminated string, handling multi-byte UTF-8.
+ *  For spaces and simple ASCII: use putchar_yx — it's marginally faster.
+ *  For any Unicode glyph (▰, ●, ┃, etc.): always use putstr_yx.
+ *
+ *  USAGE:
+ *    // Clear a 4-row × 28-col region of content
+ *    ghost_fill_rect(p, 5, 2, 4, 28, ' ', COL_BG, COL_BG);
+ *
+ *    // Highlight bar for selected menu item (dark bg, bright text)
+ *    ghost_fill_rect(p, 7, 1, 1, PHONE_COLS-2, ' ', COL_BG, 0x1C1C1C);
+ * ────────────────────────────────────────────────────────────────────────── */
+static void ghost_fill_rect(struct ncplane *n,
+                             int row, int col, int h, int w,
+                             char ch, uint32_t fg, uint32_t bg) {
+    ncplane_set_fg_rgb(n, fg);
+    ncplane_set_bg_rgb(n, bg);
+    for (int r = 0; r < h; r++) {
+        for (int c = 0; c < w; c++) {
+            ncplane_putchar_yx(n, row + r, col + c, ch);
+        }
+    }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ghost_label_value()  —  Draw a dim label + brighter value on one row
+ *
+ *  This is the most common layout pattern across all screens:
+ *
+ *    col 2           col 14
+ *    │               │
+ *    SIGNAL          ●●●○
+ *    BATTERY         ▰▰▰▱  75%
+ *    CARRIER         BH-NET
+ *    NETWORK         LTE
+ *
+ *  Align all value_col arguments to the same column for a clean two-column
+ *  layout.  Define VALUE_COL = 14 (or whatever fits) in config.h and use
+ *  it everywhere for consistency.
+ *
+ *  USAGE:
+ *    ghost_label_value(p, 5, 2, VALUE_COL, "SIGNAL",  "●●●○");
+ *    ghost_label_value(p, 6, 2, VALUE_COL, "BATTERY", "▰▰▰▱  75%");
+ *    ghost_label_value(p, 7, 2, VALUE_COL, "CARRIER", carrier_name);
+ * ────────────────────────────────────────────────────────────────────────── */
+static void ghost_label_value(struct ncplane *n,
+                               int row, int label_col, int value_col,
+                               const char *label, const char *value) {
+    ghost_text(n, row, label_col, COL_GHOST_PCT, label);   /* dim */
+    ghost_text(n, row, value_col, COL_GHOST_ON,  value);   /* bright */
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 3: PHONE PLANE CREATION
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  create_phone_plane()  —  Create the centred phone canvas
+ *
+ *  RETURNS: pointer to the new plane, or NULL on failure.
+ *  Always check for NULL — using a NULL pointer crashes the program.
+ *
+ *  NOTCURSES: plane hierarchy
+ *  ───────────────────────────
+ *  Planes form a tree.  Each child plane is positioned RELATIVE to its
+ *  parent.  Moving the parent moves all children with it.  Destroying
+ *  the parent destroys all children too.
+ *
+ *  stdplane (full terminal)
+ *    └── phone plane (centred child)
+ *
+ *  NOTCURSES: struct ncplane_options
+ *  ────────────────────────────────────
+ *  Configuration for ncplane_create():
+ *    .y     top-left row, relative to parent
+ *    .x     top-left column, relative to parent
+ *    .rows  height in terminal rows
+ *    .cols  width in terminal columns
+ *    .name  debug name (appears in notcurses diagnostics, not on screen)
+ *
+ *  NOTCURSES: ncplane_dim_yx(plane, *rows, *cols)
+ *  ─────────────────────────────────────────────────
+ *  Reads the plane dimensions into variables via pointers.  '&' gets the
+ *  address of a variable:
+ *    &term_rows  is the memory address where term_rows lives
+ *  The function writes the dimensions to those addresses.  After the call,
+ *  term_rows and term_cols hold the terminal's current dimensions.
+ *  This is "pass by pointer" — C's way for a function to "return" multiple
+ *  values (since a function has only one actual return slot).
+ *
+ *  C CONCEPT: struct designated initializers
+ *  ───────────────────────────────────────────
+ *  { .field = value }  syntax sets only the named fields.
+ *  All other fields are zero-initialised.  This is safer than positional
+ *  initializers because adding a new field to the struct later won't
+ *  silently shift your values.
+ * ────────────────────────────────────────────────────────────────────────── */
 static struct ncplane *create_phone_plane(struct ncplane *std) {
-    /*
-     * Declare variables to hold the terminal dimensions.
-     * "unsigned" means non-negative (can't have negative rows/columns).
-     */
     unsigned term_rows, term_cols;
-
-    /*
-     * ncplane_dim_yx() - Get the dimensions of a plane
-     *
-     * NOTCURSES FUNCTION:
-     *   void ncplane_dim_yx(const struct ncplane *n,
-     *                       unsigned *rows, unsigned *cols);
-     *
-     * The "&" operator gets the ADDRESS of a variable. This lets the
-     * function write values INTO our variables (called "pass by reference").
-     *
-     * After this call:
-     *   term_rows = height of terminal (e.g., 40)
-     *   term_cols = width of terminal (e.g., 120)
-     */
     ncplane_dim_yx(std, &term_rows, &term_cols);
 
     /*
-     * Calculate the position to center the phone on screen.
+     * CENTERING FORMULA: start = (total - object) / 2
      *
-     * CENTERING FORMULA:
-     *   position = (total_size - object_size) / 2
+     * Integer division truncates toward zero, so on odd remainders the
+     * object sits one cell toward top-left of perfect centre — invisible.
      *
-     * EXAMPLE: Terminal is 120 columns, phone is 50 columns
-     *   start_x = (120 - 50) / 2 = 35
-     *   So the phone starts at column 35, leaving 35 columns on each side.
-     *
-     * We use "int" (signed) because the subtraction could go negative
-     * if the terminal is smaller than the phone.
+     * We use signed int because subtraction could go negative if the
+     * terminal is smaller than PHONE_ROWS / PHONE_COLS.  Clamping to 0
+     * places the phone at the top-left in that case rather than crashing.
      */
-    int start_y = (term_rows - PHONE_ROWS) / 2;  /* Vertical position */
-    int start_x = (term_cols - PHONE_COLS) / 2;  /* Horizontal position */
-
-    /*
-     * SAFETY CHECK: Clamp negative values to 0.
-     * If terminal is smaller than phone, position at top-left corner
-     * instead of using a negative (invalid) position.
-     */
+    int start_y = ((int)term_rows - PHONE_ROWS) / 2;
+    int start_x = ((int)term_cols - PHONE_COLS) / 2;
     if (start_y < 0) start_y = 0;
     if (start_x < 0) start_x = 0;
 
-    /*
-     * Create an options struct to configure the new plane.
-     *
-     * C CONCEPT: STRUCT INITIALIZATION
-     * ---------------------------------
-     * This syntax { .field = value } is called "designated initializer."
-     * It lets you set specific fields by name. Unmentioned fields are
-     * automatically set to 0/NULL.
-     *
-     * ALTERNATIVE SYNTAX (positional, harder to read):
-     *   struct ncplane_options opts = { start_y, start_x, PHONE_ROWS, ... };
-     *
-     * NOTCURSES: ncplane_options FIELDS
-     * ---------------------------------
-     *   .y     - Row position relative to parent plane
-     *   .x     - Column position relative to parent plane
-     *   .rows  - Height of the plane in rows
-     *   .cols  - Width of the plane in columns
-     *   .name  - Debug name (shows up in notcurses diagnostics)
-     *   .userptr - Custom data pointer (we don't use this)
-     *   .flags - Special flags (0 = defaults)
-     */
     struct ncplane_options opts = {
         .y    = start_y,
         .x    = start_x,
@@ -408,185 +467,104 @@ static struct ncplane *create_phone_plane(struct ncplane *std) {
     };
 
     /*
-     * ncplane_create() - Create a new child plane
-     *
-     * NOTCURSES FUNCTION:
-     *   struct ncplane *ncplane_create(struct ncplane *parent,
-     *                                  const struct ncplane_options *opts);
-     *
-     * Creates a new plane as a child of 'parent'. The child's position
-     * is relative to the parent (so y=5 means 5 rows from parent's top).
-     *
-     * RETURNS:
-     *   - Pointer to the new plane on success
-     *   - NULL on failure (always check!)
-     *
-     * MEMORY NOTE:
-     *   Notcurses owns this memory. We must call ncplane_destroy()
-     *   when done, otherwise it's cleaned up when we call notcurses_stop().
+     * ncplane_create(parent, options)
+     * ────────────────────────────────
+     * Allocates a new plane as a child of parent.
+     * Returns NULL if allocation fails.
+     * The returned pointer is the handle for all subsequent drawing.
      */
     return ncplane_create(std, &opts);
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
- *  STATUS BAR — GHOST ORIGINAL (E1)
- *  Black Hand OS · status_bar.c
- * ═══════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 4: STATUS BAR — GHOST ORIGINAL (E1)
  *
- *  DESIGN LANGUAGE
- *  ───────────────
- *  Everything that is OFF is nearly invisible — very dark grey, not truly
- *  black, so the glyph structure is still legible up close but vanishes at
- *  arm's length.  Everything ON is a clean off-white (#E0E0E0), never pure
- *  white, which would be harsh against the black background.
- *
- *  BATTERY   ▰▰▰▱  75%
- *    ▰  (U+25B0)  BLACK LOWER RIGHT TRIANGLE — "filled" segment
- *    ▱  (U+25B1)  WHITE LOWER RIGHT TRIANGLE — "hollow" segment
- *    Percentage is printed in a near-invisible dark grey so it takes
- *    no visual priority over the glyph bar itself.
- *    Below 15%: percentage shifts to a deep red.
- *
- *  SIGNAL    ●●●○
- *    ●  (U+25CF)  BLACK CIRCLE — active bar
- *    ○  (U+25CB)  WHITE CIRCLE — inactive bar
- *    No-signal: all four circles shown hollow + a single dim "✕" prefix.
- *
- *  COLOUR PALETTE (24-bit RGB)
- *  ───────────────────────────
- *  Add these to config.h:
- *
- *    #define COL_GHOST_ON       0xE0E0E0   // active glyph — off-white
- *    #define COL_GHOST_OFF      0x1E1E1E   // inactive glyph — near-invisible
- *    #define COL_GHOST_PCT      0x2C2C2C   // percentage text — very dark
- *    #define COL_GHOST_LOW      0x7F1D1D   // low battery percentage — deep red
- *    #define COL_BG             0x080808   // background
- *
- *  ANIMATION
- *  ─────────
- *  Both functions accept `tick` — an int your render loop increments each
- *  frame.  Used for:
- *    • Low battery blink  (below 15%, not charging)
- *    • No-signal pulse    (the ✕ fades in/out)
- *
- *  RENDER LOOP EXAMPLE
- *  ───────────────────
- *    int tick = 0;
- *    while (running) {
- *        draw_battery(phone, battery_pct, charging, tick);
- *        draw_signal (phone, signal_bars, connected,  tick);
- *        notcurses_render(nc);
- *        usleep(100000);  // 100 ms → 10 fps
- *        tick++;
- *    }
- */
+ *  Status bar occupies rows 0 (border) and 1 (content).
+ *  Three functions:
+ *    draw_battery()      left side  — battery glyphs + percentage
+ *    draw_signal()       right side — signal circles, dynamically anchored
+ *    draw_status_bar()   coordinator — reads hardware, calls both
+ * ══════════════════════════════════════════════════════════════════════════ */
 
-
-/* ───────────────────────────────────────────────────────────────────────────
- *  INTERNAL HELPERS
- * ───────────────────────────────────────────────────────────────────────────
- *
- *  ghost_set() is a tiny convenience wrapper that sets fg+bg together.
- *  We call it constantly, so collapsing it cuts visual noise in the
- *  drawing functions below.
- *
- *  C CONCEPT: STATIC FUNCTIONS
- *  ────────────────────────────
- *  `static` here means the function is private to this translation unit
- *  (this .c file).  It won't be visible to other files — keeps our
- *  namespace clean.
- */
-static void ghost_set(struct ncplane *n, uint32_t fg) {
-    ncplane_set_fg_rgb(n, fg);
-    ncplane_set_bg_rgb(n, COL_BG);
-}
-
-
-/* ───────────────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
  *  draw_battery()
- * ───────────────────────────────────────────────────────────────────────────
  *
- *  OUTPUT EXAMPLES
- *  ───────────────
- *    Normal   100% →  ▰▰▰▰  100%
- *    Normal    75% →  ▰▰▰▱   75%
- *    Normal    50% →  ▰▰▱▱   50%
- *    Normal    25% →  ▰▱▱▱   25%
- *    Low       12% →  ▰▱▱▱   12%   ← percentage blinks red
- *    Charging  60% →  ▰▰▰▱  ⚡60%
+ *  Output examples:
+ *    Normal    75%  →  ▰▰▰▱  75%
+ *    Charging  60%  →  ▰▰▰▱  ⚡60%
+ *    Low       12%  →  ▰▱▱▱  12%   (whole widget blinks)
+ *    Empty      0%  →  ▱▱▱▱   0%
  *
- *  PARAMETERS
- *  ──────────
- *    phone     ncplane to draw on
- *    percent   battery level 0–100
- *    charging  true while plugged in
- *    tick      frame counter from render loop
- */
+ *  Glyphs:
+ *    ▰  U+25B0  BLACK LOWER RIGHT TRIANGLE  — filled segment
+ *    ▱  U+25B1  WHITE LOWER RIGHT TRIANGLE  — hollow segment
+ *    ⚡  U+26A1  HIGH VOLTAGE SIGN           — charging
+ *
+ *  C CONCEPT: the modulo operator  %
+ *  ───────────────────────────────────
+ *  a % b  gives the REMAINDER after dividing a by b.
+ *    10 % 3  = 1   (10 = 3×3 + 1)
+ *     7 % 4  = 3   ( 7 = 4×1 + 3)
+ *
+ *  tick % 10  cycles 0,1,2,3,4,5,6,7,8,9,0,1,2,…
+ *  (tick % 10) < 5  is true for exactly half of all ticks → 50% blink duty.
+ *
+ *  C CONCEPT: the ternary operator  ? :
+ *  ──────────────────────────────────────
+ *  condition ? value_if_true : value_if_false
+ *  Produces a value — a compact if/else that can be used inside expressions.
+ *    int max = (a > b) ? a : b;
+ *  We use it to pick "▰" or "▱" per segment, and to pick a colour.
+ *
+ *  C CONCEPT: snprintf — safe string formatting
+ *  ──────────────────────────────────────────────
+ *  snprintf(buffer, max_bytes, format_string, values…)
+ *  Like printf() but writes into a char array instead of the terminal.
+ *  The 'n' limits output to max_bytes bytes (including '\0') — safe.
+ *
+ *  Format specifiers:
+ *    %d    decimal integer
+ *    %s    string (char *)
+ *    %f    float  (use %.2f for 2 decimal places)
+ *    %%    literal percent sign
+ *
+ *  Buffer sizing:
+ *    "⚡100%\0" = 3 (⚡ = 3 UTF-8 bytes) + 4 ("100%") + 1 ('\0') = 8 bytes.
+ *    char label[16] gives comfortable headroom.
+ *
+ *  C CONCEPT: char arrays (C strings)
+ *  ────────────────────────────────────
+ *  C has no built-in string type.  A string is a char array terminated
+ *  by '\0' (the null byte).  "Hello" is stored as:
+ *    ['H','e','l','l','o','\0']   — 6 bytes for 5 visible characters.
+ *  Always allocate at least strlen + 1 bytes to accommodate '\0'.
+ * ────────────────────────────────────────────────────────────────────────── */
 static void draw_battery(struct ncplane *phone, int percent,
                          bool charging, int tick) {
 
-    /* ── SEGMENTS ──────────────────────────────────────────────────────── */
-    /*
-     * Map 0–100% onto 0–4 filled segments.
-     *
-     * FORMULA: (percent + 24) / 25
-     *   0–24%   → 0 segments  (we clamp up to 1 so bar is never all-hollow
-     *                           unless percent == 0, which looks intentional)
-     *   25–49%  → 1 segment
-     *   50–74%  → 2 segments
-     *   75–99%  → 3 segments
-     *   100%    → 4 segments
-     *
-     * We DON'T clamp 0 up to 1 deliberately — if the battery reads 0%,
-     * all four glyphs are hollow, which is a valid and readable state.
-     */
+    /* Map 0-100% → 0-4 filled segments using ceiling-like division */
     int segs = (percent + 24) / 25;
     if (segs > 4) segs = 4;
     if (segs < 0) segs = 0;
 
-    /* ── LOW BATTERY BLINK ─────────────────────────────────────────────── */
     /*
-     * Below 15% and not charging: blink the whole widget.
-     *
-     * tick % 10 cycles 0→9.
-     *   0–4  = widget visible
-     *   5–9  = widget hidden (spaces printed over it)
-     *
-     * We return early on the "hidden" phase so nothing is drawn.
-     * On the "visible" phase we fall through to normal drawing.
-     *
-     * WHY SPACES AND NOT ncplane_erase?
-     * ncplane_erase() clears the ENTIRE plane, which would wipe the
-     * clock and signal too.  Printing spaces over the exact columns
-     * erases only what we own.
-     *
-     * HOW MANY SPACES?
-     * "▰▰▰▱  12%" is about 10 visible columns.  15 spaces is safe.
+     * LOW BATTERY BLINK
+     * tick % 10 cycles 0–9.  Ticks 0-4: visible.  Ticks 5-9: hidden.
+     * We overwrite with spaces rather than ncplane_erase() because erase()
+     * clears the ENTIRE plane (wiping clock and signal too).
+     * 15 spaces covers the longest possible battery string comfortably.
      */
     if (percent < 15 && !charging) {
         if ((tick % 10) >= 5) {
             ghost_set(phone, COL_BG);
             ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_COL,
-                              "               ");   /* 15 spaces */
+                              "               ");
             return;
         }
     }
 
-    /* ── DRAW THE FOUR GLYPHS ──────────────────────────────────────────── */
-    /*
-     * We draw each glyph individually rather than building a string first.
-     * This lets us set fg colour per-glyph in the future if needed
-     * (e.g. a gradient effect), and avoids the multi-byte bookkeeping
-     * of a manually assembled UTF-8 string.
-     *
-     * ncplane_putstr_yx() advances the cursor after each call, so
-     * successive calls at the same (row, col+offset) aren't needed —
-     * we can just call ncplane_putstr() for glyphs 1–3 after positioning
-     * for glyph 0.  Using _yx for each is explicit and safer.
-     *
-     * Each glyph (▰ or ▱) is 3 UTF-8 bytes and occupies 1 terminal column.
-     */
+    /* Four glyphs, one per iteration, drawn individually for per-glyph colour control */
     for (int i = 0; i < 4; i++) {
         ghost_set(phone, i < segs ? COL_GHOST_ON : COL_GHOST_OFF);
         ncplane_putstr_yx(phone, STATUS_ROW,
@@ -594,27 +572,8 @@ static void draw_battery(struct ncplane *phone, int percent,
                           i < segs ? "▰" : "▱");
     }
 
-    /* ── PERCENTAGE LABEL ──────────────────────────────────────────────── */
-    /*
-     * Printed two columns after the last glyph (col+4 = one space gap,
-     * col+5 onward = digits).  STATUS_BATTERY_PCT_COL should be defined
-     * as STATUS_BATTERY_COL + 5 in config.h.
-     *
-     * Colour rules:
-     *   < 15% and not charging  → COL_GHOST_LOW  (deep red)
-     *   charging                → COL_GHOST_ON   (normal, ⚡ prefix)
-     *   otherwise               → COL_GHOST_PCT  (near-invisible dark)
-     *
-     * C CONCEPT: char arrays and snprintf
-     * ─────────────────────────────────────
-     * We need to build "⚡75%" or " 75%" as a string.
-     * ⚡ (U+26A1) is 3 UTF-8 bytes.
-     * "⚡100%" = 3 + 4 + 1(NUL) = 8 bytes.
-     * "  100%" = 1 + 4 + 1(NUL) = 7 bytes.
-     * char label[16] gives comfortable margin.
-     */
+    /* Percentage label */
     char label[16];
-
     if (charging) {
         ghost_set(phone, COL_GHOST_ON);
         snprintf(label, sizeof(label), "⚡%d%%", percent);
@@ -625,274 +584,206 @@ static void draw_battery(struct ncplane *phone, int percent,
         ghost_set(phone, COL_GHOST_PCT);
         snprintf(label, sizeof(label), " %d%%", percent);
     }
-
     ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_PCT_COL, label);
 }
 
-
-/* ───────────────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
  *  draw_signal()
- * ───────────────────────────────────────────────────────────────────────────
  *
- *  OUTPUT EXAMPLES
- *  ───────────────
- *    4 bars   →  ●●●●
- *    3 bars   →  ●●●○
- *    1 bar    →  ●○○○
- *    No signal→  ✕○○○   ← ✕ pulses dim/invisible
+ *  Output:
+ *    4 bars    →  ●●●●   (all filled, right-anchored)
+ *    3 bars    →  ●●●○
+ *    No signal →  ✕○○○   (✕ pulses between two dark greys)
  *
- *  NO-SIGNAL STATE
- *  ───────────────
- *  We don't replace the circles with text.  Instead the four circles all
- *  go hollow and a ✕ (U+2715) appears in the column just before them,
- *  pulsing between COL_GHOST_OFF and a slightly brighter dim grey
- *  so it draws the eye without being alarming.
+ *  Glyphs:
+ *    ●  U+25CF  BLACK CIRCLE      — active bar
+ *    ○  U+25CB  WHITE CIRCLE      — inactive bar
+ *    ✕  U+2715  MULTIPLICATION X  — no-signal marker
  *
- *  PARAMETERS
- *  ──────────
- *    phone      ncplane to draw on
- *    bars       signal strength 0–4
- *    connected  true if registered to any network
- *    tick       frame counter from render loop
- */
+ *  RIGHT-ANCHORED POSITIONING
+ *  ───────────────────────────
+ *  Position is computed dynamically from the plane width at draw-time:
+ *    sig_col = cols - 6
+ *  This keeps signal flush against the right border regardless of PHONE_COLS
+ *  or terminal resize.  NCKEY_RESIZE causes a redraw; the next call to
+ *  draw_signal() picks up the new cols automatically.
+ *
+ *  Column layout (right edge):
+ *    cols-7  →  ✕ prefix  (only when disconnected)
+ *    cols-6  →  circle 0
+ *    cols-5  →  circle 1
+ *    cols-4  →  circle 2
+ *    cols-3  →  circle 3
+ *    cols-2  →  gap before border
+ *    cols-1  →  right border ┃
+ *
+ *  C CONCEPT: casting  (int)unsigned_value
+ *  ─────────────────────────────────────────
+ *  cols is unsigned (plane width is never negative).  We subtract from it
+ *  to find sig_col, which could theoretically go negative on a tiny terminal.
+ *  Casting to int first makes the arithmetic signed so negative results are
+ *  handled correctly (and we then guard with 'if (sig_col < 1) return').
+ * ────────────────────────────────────────────────────────────────────────── */
 static void draw_signal(struct ncplane *phone, int bars,
                         bool connected, int tick) {
 
-    /* ── NO SIGNAL ─────────────────────────────────────────────────────── */
-    if (!connected) {
-        /*
-         * Pulse the ✕ between two shades of dark grey.
-         *
-         * tick % 8:  0-3 = dimmer shade, 4-7 = slightly brighter
-         * This is a very subtle pulse — enough to signal "scanning"
-         * without being distracting.
-         *
-         * STATUS_SIGNAL_PREFIX_COL = STATUS_SIGNAL_COL - 1
-         * (one column left of where the circles start)
-         */
-        uint32_t x_color = ((tick % 8) < 4) ? 0x242424 : 0x383838;
-        ghost_set(phone, x_color);
-        ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_PREFIX_COL, "✕");
-
-        /* All four circles hollow */
-        ghost_set(phone, COL_GHOST_OFF);
-        for (int i = 0; i < 4; i++) {
-            ncplane_putstr_yx(phone, STATUS_ROW,
-                              STATUS_SIGNAL_COL + i, "○");
-        }
-        return;
-    }
-
-    /* ── CONNECTED ─────────────────────────────────────────────────────── */
-    /*
-     * Erase the prefix column in case we were previously disconnected
-     * and a ✕ is sitting there.
-     */
-    ghost_set(phone, COL_BG);
-    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_SIGNAL_PREFIX_COL, " ");
-
-    /*
-     * Draw four circles: ● for active (i < bars), ○ for inactive.
-     *
-     * Both ● (U+25CF) and ○ (U+25CB) are 3-byte UTF-8 sequences that
-     * occupy exactly 1 terminal column each, so column arithmetic is
-     * straightforward: STATUS_SIGNAL_COL + i.
-     */
-    for (int i = 0; i < 4; i++) {
-        ghost_set(phone, i < bars ? COL_GHOST_ON : COL_GHOST_OFF);
-        ncplane_putstr_yx(phone, STATUS_ROW,
-                          STATUS_SIGNAL_COL + i,
-                          i < bars ? "●" : "○");
-    }
-}
-/* ───────────────────────────────────────────────────────────────────────────
- *  draw_status_bar() - Draw the complete status bar (battery + signal)
- * ───────────────────────────────────────────────────────────────────────────
- *
- *  WHAT IT DOES:
- *  Reads current hardware status and draws both indicators.
- *  This is a "convenience function" that combines multiple operations.
- *
- *  DESIGN PATTERN: FACADE
- *  ----------------------
- *  This function hides the complexity of getting hardware data and
- *  drawing multiple elements. Callers just call draw_status_bar()
- *  without worrying about the details.
- */
-static void draw_status_bar(struct ncplane *phone, int tick) {
-    /*
-     * Get current hardware status.
-     *
-     * These functions return STRUCTS (not pointers). The entire struct
-     * is COPIED into our local variables. This is fine for small structs
-     * but inefficient for large ones (which would use pointers instead).
-     *
-     * See hardware.h for struct definitions.
-     */
-    battery_status_t  batt = hardware_get_battery();
-    cellular_status_t cell = hardware_get_cellular();
-
-    /* Draw both indicators */
-    draw_battery(phone, batt.percent, batt.charging, tick);
-    draw_signal(phone, cell.signal_bars, cell.connected, tick);
-}
-
-
-/* ───────────────────────────────────────────────────────────────────────────
- *  draw_frame() - Draw the phone border, status bar, and separators
- * ───────────────────────────────────────────────────────────────────────────
- *
- *  WHAT IT DOES:
- *  Draws the static "chrome" of the phone UI:
- *    1. Fills the background with COL_BG
- *    2. Draws a heavy Unicode border around the edge
- *    3. Draws the status bar (battery/signal)
- *    4. Draws separator lines (below status bar, above footer)
- *    5. Draws the footer text ("[q]Quit")
- *
- *  CALLED: Every frame, before drawing the active screen's content
- *
- *  NOTCURSES CONCEPT: DOUBLE BUFFERING
- *  -----------------------------------
- *  All our drawing goes to an off-screen buffer. Nothing appears on the
- *  terminal until we call notcurses_render(). This prevents flicker and
- *  allows the library to optimize updates (only redraw changed parts).
- *
- *  HOW TO MODIFY:
- *    - Change border style: Use nccells_light_box, nccells_double_box, etc.
- *    - Remove footer: Delete the footer drawing code at the bottom
- *    - Add a header title: Add ncplane_putstr_yx() after the border
- */
-static void draw_frame(struct ncplane *phone, int tick) {
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
 
-    /*
-     * ncplane_erase() - Clear the entire plane
-     *
-     * NOTCURSES FUNCTION:
-     *   void ncplane_erase(struct ncplane *n);
-     *
-     * Resets all cells to blank (space character, default colors).
-     * We do this first so previous frame's content doesn't bleed through.
-     *
-     * NOTE: erase() uses the plane's "base cell" colors, not the current
-     * fg/bg colors. That's why we also do the fill loop below.
-     */
-    ncplane_erase(phone);
+    int sig_col    = (int)cols - 6;
+    int prefix_col = (int)cols - 7;
 
-    /* Skip drawing if plane is too small (prevents garbled output) */
-    if (rows < FRAME_MIN_ROWS || cols < FRAME_MIN_COLS) return;
+    if (sig_col < 1) return;   /* plane too narrow — bail silently */
 
-    /*
-     * STEP 1: Fill the interior with background color
-     * ------------------------------------------------
-     * We only fill the cells INSIDE the border (rows 1..rows-2,
-     * cols 1..cols-2) with COL_BG.  The border cells (row 0, last row,
-     * col 0, last col) are left at the default so they don't show a
-     * coloured halo against the terminal background.
-     *
-     * ncplane_putchar_yx(plane, row, col, char)
-     *   Draws a single character at the specified position.
-     *   Uses the currently-set fg/bg colors.
-     */
-    ncplane_set_bg_rgb(phone, COL_BG);
-    for (unsigned y = 1; y < rows - 1; y++) {
-        for (unsigned x = 1; x < cols - 1; x++) {
-            ncplane_putchar_yx(phone, y, x, ' ');
-        }
+    if (!connected) {
+        /*
+         * Pulse ✕ between two barely-different dark greys.
+         * The difference (0x242424 vs 0x383838) is intentionally subtle —
+         * just enough to read as "scanning", not alarming.
+         */
+        uint32_t x_color = ((tick % 8) < 4) ? 0x242424 : 0x383838;
+        ghost_set(phone, x_color);
+        ncplane_putstr_yx(phone, STATUS_ROW, prefix_col, "✕");
+
+        ghost_set(phone, COL_GHOST_OFF);
+        for (int i = 0; i < 4; i++)
+            ncplane_putstr_yx(phone, STATUS_ROW, sig_col + i, "○");
+        return;
     }
 
-    /*
-     * STEP 2: Draw the border
-     * -----------------------
-     * Notcurses provides functions to draw boxes using Unicode box-drawing
-     * characters. We need to:
-     *   1. Create 6 cells for the box parts (corners + edges)
-     *   2. Load them with the box-drawing characters
-     *   3. Draw the box
-     *   4. Release the cells (free any internal memory)
-     *
-     * NOTCURSES: nccell
-     * -----------------
-     * An nccell represents one character cell with:
-     *   - The character/glyph (can be multi-byte Unicode)
-     *   - Foreground color
-     *   - Background color
-     *   - Style attributes (bold, italic, etc.)
-     *
-     * NCCELL_TRIVIAL_INITIALIZER
-     *   Macro that zeros out a cell. Always initialize cells before use!
-     */
-    ncplane_set_fg_rgb(phone, COL_BORDER);
+    /* Erase prefix column — clears any leftover ✕ from disconnected state */
+    ghost_set(phone, COL_BG);
+    ncplane_putstr_yx(phone, STATUS_ROW, prefix_col, " ");
 
-    nccell ul = NCCELL_TRIVIAL_INITIALIZER;  /* Upper-left corner:  ┏ */
-    nccell ur = NCCELL_TRIVIAL_INITIALIZER;  /* Upper-right corner: ┓ */
-    nccell ll = NCCELL_TRIVIAL_INITIALIZER;  /* Lower-left corner:  ┗ */
-    nccell lr = NCCELL_TRIVIAL_INITIALIZER;  /* Lower-right corner: ┛ */
-    nccell hl = NCCELL_TRIVIAL_INITIALIZER;  /* Horizontal line:    ━ */
-    nccell vl = NCCELL_TRIVIAL_INITIALIZER;  /* Vertical line:      ┃ */
+    for (int i = 0; i < 4; i++) {
+        ghost_set(phone, i < bars ? COL_GHOST_ON : COL_GHOST_OFF);
+        ncplane_putstr_yx(phone, STATUS_ROW, sig_col + i,
+                          i < bars ? "●" : "○");
+    }
+}
 
-    /*
-     * NOTCURSES: Channels
-     * -------------------
-     * A "channel" is a 64-bit value encoding foreground and background colors.
-     * We create a channel with our colors so the border cells use them.
-     *
-     * ncchannels_set_fg_rgb(&channels, color) - Set foreground in channel
-     * ncchannels_set_bg_rgb(&channels, color) - Set background in channel
-     *
-     * WHY? When nccells_heavy_box loads cells, it uses the channel to set
-     * their colors. If channels=0, cells get default (transparent) colors.
-     */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  draw_status_bar()  —  Read hardware state and draw both indicators
+ *
+ *  C CONCEPT: returning structs by value
+ *  ──────────────────────────────────────
+ *  hardware_get_battery() returns a battery_status_t struct.
+ *  The ENTIRE struct is copied into the local variable 'batt'.
+ *  For small structs (a few int/bool fields) this is fine — copying a
+ *  handful of bytes is fast.  For large structs, pass a pointer instead.
+ *
+ *  Struct field access: batt.percent, batt.charging
+ *  The '.' operator reads a named field from a struct variable.
+ *  If you had a pointer to a struct: ptr->percent  (arrow operator).
+ * ────────────────────────────────────────────────────────────────────────── */
+static void draw_status_bar(struct ncplane *phone, int tick) {
+    battery_status_t  batt = hardware_get_battery();
+    cellular_status_t cell = hardware_get_cellular();
+    draw_battery(phone, batt.percent,     batt.charging,  tick);
+    draw_signal (phone, cell.signal_bars, cell.connected, tick);
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 5: FRAME
+ *
+ *  draw_frame() is called at the start of EVERY frame before the active
+ *  screen draws.  It owns the background, border, status bar, and separator.
+ *  After it returns, screens draw into the content area (rows 3 onward).
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  draw_frame()
+ *
+ *  PARAMETERS:
+ *    phone        the phone plane
+ *    tick         frame counter, forwarded to status bar for animation
+ *    screen_name  short uppercase ASCII label centred in the separator
+ *
+ *  SEPARATOR FORMAT:
+ *    ┣━━━━━ HOME ━━━━━━┫
+ *    Centred by splitting remaining ━ cells into left_fill and right_fill.
+ *
+ *  NOTCURSES: ncplane_erase()
+ *  ────────────────────────────
+ *  Resets every cell in the plane to: space glyph, default colours, no style.
+ *  MUST be called at the start of each frame so last frame's content doesn't
+ *  bleed through where the new frame draws nothing.
+ *
+ *  NOTCURSES: double buffering
+ *  ────────────────────────────
+ *  All putstr / putchar calls write to an INTERNAL BUFFER, not the terminal.
+ *  Nothing is visible until notcurses_render() is called.  This eliminates
+ *  flickering — the terminal receives only the final composed frame.
+ *
+ *  NOTCURSES: border drawing with nccells
+ *  ────────────────────────────────────────
+ *  Step 1: Declare 6 nccell variables, one per box element:
+ *            ul (upper-left corner)  ur (upper-right)  ll (lower-left)
+ *            lr (lower-right)        hl (horizontal)   vl (vertical)
+ *          Always initialise with NCCELL_TRIVIAL_INITIALIZER before use.
+ *
+ *  Step 2: Build a uint64_t 'channels' encoding the border colours.
+ *          A channel packs fg + bg colours into one 64-bit integer.
+ *          Manipulate with macros, never raw bit operations:
+ *            ncchannels_set_fg_rgb(&channels, 0xRRGGBB)
+ *            ncchannels_set_bg_rgb(&channels, 0xRRGGBB)
+ *            ncchannels_set_bg_default(&channels)   ← transparent bg
+ *
+ *  Step 3: Load the 6 cells with box-drawing characters:
+ *            nccells_heavy_box(plane, styles, channels, &ul, &ur, …)
+ *          Alternatives:
+ *            nccells_light_box()    ┌┐└┘─│   thin lines
+ *            nccells_double_box()   ╔╗╚╝═║   double lines
+ *            nccells_rounded_box()  ╭╮╰╯─│   rounded corners
+ *
+ *  Step 4: Draw the box:
+ *            ncplane_cursor_move_yx(plane, 0, 0)   ← position cursor
+ *            ncplane_box(plane, &ul,&ur,&ll,&lr,&hl,&vl, rows-1, cols-1, 0)
+ *            'rows-1, cols-1' = bottom-right corner of the box.
+ *            '0' = ctlword: draw all sides, no interior fill.
+ *
+ *  Step 5: Release cell memory:
+ *            nccell_release(plane, &ul)  … for all 6 cells.
+ *          nccells_heavy_box may allocate heap memory for multi-byte glyphs.
+ *          Skipping release = memory leak.  Always release.
+ *
+ *  NOTCURSES: ncplane_set_bg_default()
+ *  ─────────────────────────────────────
+ *  Makes the background of subsequent cells TRANSPARENT — the cell shows
+ *  whatever is on planes below it (in this case the terminal background).
+ *  Use this for border cells so they don't show COL_BG as a coloured halo
+ *  outside the phone frame against the terminal's own background.
+ * ────────────────────────────────────────────────────────────────────────── */
+static void draw_frame(struct ncplane *phone, int tick,
+                       const char *screen_name) {
+
+    unsigned rows, cols;
+    ncplane_dim_yx(phone, &rows, &cols);
+
+    ncplane_erase(phone);
+    if (rows < (unsigned)FRAME_MIN_ROWS || cols < (unsigned)FRAME_MIN_COLS)
+        return;
+
+    /* ── Background fill — interior only, leave border cells transparent ── */
+    ghost_fill_rect(phone, 1, 1, (int)rows - 2, (int)cols - 2, ' ', COL_BG, COL_BG);
+
+    /* ── Heavy-line border ─────────────────────────────────────────────── */
+    nccell ul = NCCELL_TRIVIAL_INITIALIZER;
+    nccell ur = NCCELL_TRIVIAL_INITIALIZER;
+    nccell ll = NCCELL_TRIVIAL_INITIALIZER;
+    nccell lr = NCCELL_TRIVIAL_INITIALIZER;
+    nccell hl = NCCELL_TRIVIAL_INITIALIZER;
+    nccell vl = NCCELL_TRIVIAL_INITIALIZER;
+
     uint64_t channels = 0;
     ncchannels_set_bg_default(&channels);
     ncchannels_set_fg_rgb(&channels, COL_BORDER);
-
-    /*
-     * nccells_heavy_box() - Load cells with heavy (thick) box characters
-     *
-     * NOTCURSES FUNCTION:
-     *   int nccells_heavy_box(struct ncplane *n, uint32_t styles,
-     *                         uint64_t channels, nccell *ul, nccell *ur,
-     *                         nccell *ll, nccell *lr, nccell *hl, nccell *vl);
-     *
-     * ALTERNATIVES:
-     *   nccells_light_box()   - Thin lines: ┌┐└┘─│
-     *   nccells_double_box()  - Double lines: ╔╗╚╝═║
-     *   nccells_rounded_box() - Rounded corners: ╭╮╰╯─│
-     */
     nccells_heavy_box(phone, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl);
 
-    /*
-     * ncplane_box() - Draw a box on the plane
-     *
-     * NOTCURSES FUNCTION:
-     *   int ncplane_box(struct ncplane *n, const nccell *ul, const nccell *ur,
-     *                   const nccell *ll, const nccell *lr, const nccell *hline,
-     *                   const nccell *vline, unsigned ystop, unsigned xstop,
-     *                   unsigned ctlword);
-     *
-     * Draws from the current cursor position to (ystop, xstop).
-     * ctlword = 0 means don't fill the interior.
-     *
-     * We first move the cursor to (0, 0) - the top-left corner.
-     */
     ncplane_cursor_move_yx(phone, 0, 0);
     ncplane_box(phone, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols - 1, 0);
 
-    /*
-     * nccell_release() - Free any memory used by a cell
-     *
-     * Some cells allocate internal storage for multi-byte characters.
-     * Always release cells that were loaded with nccells_*_box() or nccell_load().
-     *
-     * C CONCEPT: RESOURCE MANAGEMENT
-     * -------------------------------
-     * C has no garbage collector. If you allocate memory, YOU must free it.
-     * This is called "manual memory management." Forgetting to free memory
-     * causes "memory leaks" - your program gradually uses more and more RAM.
-     */
     nccell_release(phone, &ul);
     nccell_release(phone, &ur);
     nccell_release(phone, &ll);
@@ -900,365 +791,457 @@ static void draw_frame(struct ncplane *phone, int tick) {
     nccell_release(phone, &hl);
     nccell_release(phone, &vl);
 
-    /*
-     * STEP 3: Draw the status bar
-     */
+    /* ── Status bar ────────────────────────────────────────────────────── */
     draw_status_bar(phone, tick);
 
+    /* ── Centred screen-name separator ────────────────────────────────── */
     /*
-     * STEP 4: Draw separator lines
-     * ----------------------------
-     * We draw horizontal lines to separate the status bar from content,
-     * and content from the footer.
+     * CENTERING ALGORITHM
+     * ────────────────────
+     * inner      = cols - 2          ← interior columns (between T-junctions)
+     * name_len   = strlen(name)      ← byte count (= column count for ASCII)
+     * padded     = name_len + 2      ← name with one space on each side
+     * left_fill  = (inner-padded)/2  ← ━ cells left of the name
+     * right_fill = remainder         ← ━ cells right of the name
      *
-     * Line characters used:
-     *   ┣ - Left T-junction (connects to left border)
-     *   ━ - Horizontal line
-     *   ┫ - Right T-junction (connects to right border)
+     * Clamped to 0 so extremely long names don't produce negative loops.
+     *
+     * NOTE: strlen() counts BYTES not Unicode codepoints.  For ASCII screen
+     * names ("HOME", "SETTINGS") bytes = columns.  If you ever use a
+     * non-ASCII name you will need mbstowcs() or similar to count columns.
      */
-    ncplane_set_fg_rgb(phone, COL_SEPARATOR);
+    int inner      = (int)cols - 2;
+    int name_len   = (int)strlen(screen_name);
+    int padded     = name_len + 2;
+    int left_fill  = (inner - padded) / 2;
+    int right_fill = inner - padded - left_fill;
+    if (left_fill  < 0) left_fill  = 0;
+    if (right_fill < 0) right_fill = 0;
 
-    /* Top separator (below status bar, at row 2) */
-    /* T-junctions sit on the border edge (col 0 / cols-1), so use
-       default bg so they don't leak COL_BG outside the border. */
+    /* Left T-junction — transparent bg so it blends with terminal border */
+    ncplane_set_fg_rgb(phone, COL_SEPARATOR);
     ncplane_set_bg_default(phone);
     ncplane_putstr_yx(phone, 2, 0, "┣");
-    ncplane_putstr_yx(phone, 2, cols - 1, "┫");
 
-    /* Interior separator segments use COL_BG */
+    /* Left ━ fill */
     ncplane_set_bg_rgb(phone, COL_BG);
-    for (unsigned x = 1; x < cols - 1; x++) {
-        ncplane_putstr_yx(phone, 2, x, "━");
-    }
+    for (int x = 0; x < left_fill; x++)
+        ncplane_putstr_yx(phone, 2, 1 + x, "━");
 
-    /* Bottom separator (above footer, at second-to-last row) */
-   // ncplane_putstr_yx(phone, rows - 2, 0, "┣");
-   // for (unsigned x = 1; x < cols - 1; x++) {
-   //     ncplane_putstr_yx(phone, rows - 2, x, "━");
-   // }
-  //  ncplane_putstr_yx(phone, rows - 2, cols - 1, "┫");
+    /* Space + name + space */
+    ncplane_putstr_yx(phone, 2, 1 + left_fill, " ");
+    ncplane_set_fg_rgb(phone, COL_GHOST_PCT);
+    ncplane_putstr_yx(phone, 2, 1 + left_fill + 1, screen_name);
+    ncplane_set_fg_rgb(phone, COL_SEPARATOR);
+    ncplane_putstr_yx(phone, 2, 1 + left_fill + 1 + name_len, " ");
 
-    /*
-     * STEP 5: Draw footer text
-     */
-    //ncplane_set_fg_rgb(phone, COL_FOOTER_TEXT);
-   // ncplane_putstr_yx(phone, rows - 1, 1, TEXT_FOOTER);
+    /* Right ━ fill */
+    int right_start = 1 + left_fill + 1 + name_len + 1;
+    for (int x = 0; x < right_fill; x++)
+        ncplane_putstr_yx(phone, 2, right_start + x, "━");
+
+    /* Right T-junction */
+    ncplane_set_bg_default(phone);
+    ncplane_putstr_yx(phone, 2, (int)cols - 1, "┫");
 }
 
 
-/* ═══════════════════════════════════════════════════════════════════════════
- *  SECTION 3: MAIN FUNCTION
- * ═══════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════════════
+ *  SECTION 6: MAIN
  *
- *  C CONCEPT: THE main() FUNCTION
- *  ------------------------------
- *  Every C program must have exactly one main() function. This is where
- *  the operating system starts running your code.
+ *  C CONCEPT: int main(void)
+ *  ──────────────────────────
+ *  The OS calls main() to start the program.
+ *  Return 0 = success.  Return non-zero = error.
+ *  Check with:  echo $?  in the shell after the program exits.
  *
- *  SIGNATURES:
- *    int main(void)                 - No command-line arguments
- *    int main(int argc, char **argv) - With command-line arguments
+ *  C CONCEPT: the event loop pattern
+ *  ─────────────────────────────────────
+ *  All interactive terminal programs follow this structure:
+ *    1.  Initialise resources
+ *    2.  LOOP until quit:
+ *          a.  Draw current state to buffer
+ *          b.  Render buffer to terminal
+ *          c.  Block waiting for input  (CPU idle here — no busy-wait)
+ *          d.  Update state based on input
+ *    3.  Clean up resources
  *
- *  RETURN VALUE:
- *    - 0 means "success" (program ran correctly)
- *    - Non-zero means "error" (the number can indicate which error)
- *
- *  The shell can check this with: echo $?
- */
+ *  The 'tick' counter increments every frame and drives all animations.
+ *  At 10fps, tick advances 10 per second.  tick % N cycles every N/10 sec.
+ * ══════════════════════════════════════════════════════════════════════════ */
 
 int main(void) {
+
+    /* ── Locale — MUST be first, before any Unicode output ─────────────── */
     /*
-     * STEP 1: INITIALIZE LOCALE
-     * -------------------------
-     * setlocale() tells the C library to use the user's language/region
-     * settings. This is REQUIRED for Unicode characters to display correctly.
-     *
-     * LC_ALL affects all locale categories (numbers, dates, characters, etc.)
-     * "" means "use whatever the environment specifies"
-     *
-     * Without this call, Unicode box-drawing characters would show as garbage!
+     * setlocale(LC_ALL, "")
+     * ──────────────────────
+     * Sets the program's locale to the system default (read from the LANG
+     * or LC_ALL environment variable).  On Raspbian this is typically
+     * en_GB.UTF-8 or en_US.UTF-8 — both enable correct UTF-8 output.
+     * LC_ALL affects all categories: encoding, numbers, dates, collation.
      */
     setlocale(LC_ALL, "");
 
-    /*
-     * STEP 2: INITIALIZE HARDWARE
-     * ---------------------------
-     * Set up the hardware abstraction layer. For now this does nothing
-     * (stub implementation), but when connected to real hardware it would
-     * open I2C/UART connections to battery gauge and cellular modem.
-     */
+    /* ── Hardware ───────────────────────────────────────────────────────── */
     hardware_init();
+    settings_service_init();
 
+    /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
-     * STEP 3: INITIALIZE NOTCURSES
-     * ----------------------------
-     * Configure and start the Notcurses library.
+     * struct notcurses_options
+     * ─────────────────────────
+     * Configuration for notcurses_init().  Unset fields default to 0.
      *
-     * NCOPTION_SUPPRESS_BANNERS prevents Notcurses from printing
-     * startup/shutdown messages (version info, terminal capabilities).
+     * NCOPTION_SUPPRESS_BANNERS
+     *   Prevents Notcurses printing "notcurses vX.Y.Z" on startup.
+     *   Always use this in production so the terminal looks clean.
+     *
+     * Other useful flags to know:
+     *   NCOPTION_NO_ALTERNATE_SCREEN  keep terminal scrollback (good during dev)
+     *   NCOPTION_NO_WINCH_SIGHANDLER  don't auto-handle resize signals
+     *   NCOPTION_NO_QUIT_SIGHANDLERS  don't auto-handle Ctrl-C
      */
-    struct notcurses_options opts = {
+    struct notcurses_options nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS,
     };
 
     /*
-     * notcurses_init() - Start the library
+     * notcurses_init(options, output_stream)
+     * ────────────────────────────────────────
+     * output_stream = NULL means stdout (the terminal).
      *
-     * NOTCURSES FUNCTION:
-     *   struct notcurses *notcurses_init(const struct notcurses_options *opts,
-     *                                    FILE *fp);
+     * What this does internally:
+     *   • Queries terminal capabilities (colour depth, Unicode, box chars)
+     *   • Enters the "alternate screen"  (your scrollback is preserved)
+     *   • Enables raw input mode  (no line buffering, no echo)
+     *   • Creates the standard plane covering the full terminal
      *
-     * Parameters:
-     *   opts - Configuration options (pass NULL for defaults)
-     *   fp   - Output stream (NULL = stdout, i.e., the terminal)
-     *
-     * What it does:
-     *   - Queries terminal for capabilities (colors, size, etc.)
-     *   - Switches to "alternate screen" (preserves your scrollback)
-     *   - Enables raw input mode (immediate key events)
-     *   - Creates the standard plane covering the whole terminal
-     *
-     * RETURNS:
-     *   - Pointer to the notcurses context on success
-     *   - NULL on failure
-     *
-     * IMPORTANT: Always check if this returns NULL!
+     * Returns NULL on failure.  Always check before using 'nc'.
      */
-    struct notcurses *nc = notcurses_init(&opts, NULL);
-
-    /*
-     * C CONCEPT: ERROR HANDLING
-     * -------------------------
-     * C doesn't have exceptions. Functions indicate errors by:
-     *   - Returning NULL (for pointers)
-     *   - Returning negative numbers (for integers)
-     *   - Setting a global 'errno' variable
-     *
-     * You MUST check return values! Using a NULL pointer causes a
-     * "segmentation fault" (crash).
-     */
+    struct notcurses *nc = notcurses_init(&nc_opts, NULL);
     if (!nc) {
-        /*
-         * Print error to stderr (standard error stream).
-         * stderr is separate from stdout so error messages don't mix
-         * with normal output (important when output is redirected to a file).
-         */
         fprintf(stderr, "Notcurses init failed\n");
-        return 1;  /* Return non-zero to indicate error */
-    }
-
-    /*
-     * Get the standard plane (covers entire terminal).
-     *
-     * notcurses_stdplane() - Get the standard plane
-     *
-     * The standard plane always exists after init; never NULL.
-     * We use it as the parent for our phone plane.
-     */
-    struct ncplane *std = notcurses_stdplane(nc);
-
-    /*
-     * Draw a dev-mode label in the corner (outside the phone).
-     * This is on the standard plane, visible behind the phone.
-     */
-    ncplane_set_fg_rgb(std, COL_DEV_LABEL);
-    ncplane_putstr_yx(std, 0, 2, TEXT_DEV_LABEL);
-
-    /*
-     * STEP 4: CREATE THE PHONE PLANE
-     * -------------------------------
-     */
-    struct ncplane *phone = create_phone_plane(std);
-    if (!phone) {
-        notcurses_stop(nc);  /* Clean up before exiting */
         return 1;
     }
 
     /*
-     * STEP 5: INITIALIZE SCREEN STATE
-     * --------------------------------
-     * Track which screen we're currently showing.
-     * See ui.h for the screen_id enum definition.
+     * notcurses_stdplane(nc)
+     * ───────────────────────
+     * Returns the standard plane — always exists after successful init,
+     * covers the full terminal, is the root of the plane tree.
+     * Never returns NULL.  Use as parent for our phone plane.
+     */
+    struct ncplane *std = notcurses_stdplane(nc);
+
+    /* Small dev label on the std plane (visible outside the phone frame) */
+    ncplane_set_fg_rgb(std, COL_DEV_LABEL);
+    ncplane_putstr_yx(std, 0, 2, TEXT_DEV_LABEL);
+
+    /* ── Phone plane ────────────────────────────────────────────────────── */
+    struct ncplane *phone = create_phone_plane(std);
+    if (!phone) {
+        notcurses_stop(nc);
+        return 1;
+    }
+
+    /* ── State ──────────────────────────────────────────────────────────── */
+    /*
+     * current_screen tracks which view is active.
+     * Changing this in the input handler is the entire navigation system.
+     * The enum type (screen_id) means the compiler will warn if you assign
+     * a value that doesn't exist in the enum.
      */
     screen_id current_screen = SCREEN_HOME;
+    screen_id previous_screen = (screen_id)-1;  /* force first-frame transition */
 
     /*
-     * Frame counter for animations (low battery blink, no-signal pulse).
-     * Incremented each frame; used by draw_battery() and draw_signal().
+     * tick drives all animation.  Increments each frame.
+     * int holds up to ~2.1 billion — won't overflow for years.
+     * All animation uses tick % N so it loops forever.
      */
     int tick = 0;
 
+    /* ── Event loop ─────────────────────────────────────────────────────── */
     /*
-     * STEP 6: MAIN EVENT LOOP
-     * -----------------------
-     * This is the heart of any interactive application.
-     *
-     * C CONCEPT: while(1) INFINITE LOOP
-     * ----------------------------------
-     * "while (1)" loops forever because 1 is always "true."
-     * We exit with "break" (jump out of loop) or "return" (exit function).
-     *
-     * THE LOOP PATTERN:
-     *   1. Draw current state to screen
-     *   2. Render (push to terminal)
-     *   3. Wait for user input
-     *   4. Update state based on input
-     *   5. Repeat
-     *
-     * This is also called a "game loop" or "event loop."
+     * C CONCEPT: while (1)  —  infinite loop
+     * ────────────────────────────────────────
+     * 1 is always truthy in C, so this runs forever until a 'break' or
+     * 'return' statement exits it.
      */
     while (1) {
+
+        /* ── SCREEN TRANSITION ─────────────────────────────────────────── */
         /*
-         * DRAW PHASE
-         * ----------
-         * First draw the frame (border, status bar, footer).
-         * Then draw the active screen's content.
+         * Track screen changes.  Currently used only for the screen_name
+         * label in the separator.  When a screen needs init/cleanup,
+         * add it here:
+         *   if (previous == SCREEN_X) screen_x_destroy();
+         *   if (current  == SCREEN_X) screen_x_init(phone);
          */
-        draw_frame(phone, tick);
+        previous_screen = current_screen;
+
+        /* RESOLVE SCREEN NAME
+         * ────────────────────
+         * Map the current screen enum to the label shown in the separator.
+         *
+         * C CONCEPT: switch / case
+         * ─────────────────────────
+         * switch (expr) compares expr to each 'case' value and jumps to
+         * the first match.  Execution runs until 'break' exits the switch.
+         * Without 'break', execution falls through into the next case
+         * (sometimes intentional, almost always a bug).
+         * 'default' handles any value not matched by an explicit case —
+         * always include it as a safety net.
+         *
+         * The compiler can generate a jump table for switch, making it O(1)
+         * regardless of the number of cases.  An if/else chain is O(n).
+         *
+         * C CONCEPT: const char *
+         * ────────────────────────
+         * screen_name is a pointer to a string literal.  String literals
+         * live in read-only memory — you can read them, never modify them.
+         * 'const' enforces this at compile time.
+         *
+         * HOW TO ADD A NEW SCREEN NAME:
+         *   case SCREEN_CALLS:   screen_name = "CALLS";   break;
+         */
+        const char *screen_name;
+        switch (current_screen) {
+            case SCREEN_HOME:     screen_name = "HOME";     break;
+            case SCREEN_SETTINGS: screen_name = "SETTINGS"; break;
+            case SCREEN_CALLS:    screen_name = "CALLS";    break;
+            case SCREEN_MESSAGES: screen_name = "MESSAGES"; break;
+            case SCREEN_CONTACTS: screen_name = "CONTACTS"; break;
+            case SCREEN_MP3:      screen_name = "MP3";      break;
+            case SCREEN_VOICE_MEMO: screen_name = "VOICE";  break;
+            case SCREEN_NOTES:    screen_name = "NOTES";    break;
+            default:              screen_name = "";           break;
+        }
+
+        /* ── DRAW PHASE ──────────────────────────────────────────────────── */
+        /*
+         * draw_frame() MUST come first — it calls ncplane_erase() which
+         * clears the plane.  Screen draw functions then paint on top of the
+         * cleared frame.  Never call ncplane_erase() in a screen function.
+         *
+         * PATTERN for all screen_*_draw() functions:
+         * ────────────────────────────────────────────
+         *   void screen_foo_draw(struct ncplane *phone) {
+         *       // The content area starts at row CONTENT_ROW_START (= 3).
+         *       // Left margin is col 2 (one inside border + one gap).
+         *       // Right limit is PHONE_COLS - 3.
+         *
+         *       // Title
+         *       ghost_text(phone, 3, 2, COL_GHOST_ON, "TITLE TEXT");
+         *
+         *       // Separator under title (optional)
+         *       ghost_hline(phone, 4, 2, PHONE_COLS-4, "─", COL_SEPARATOR);
+         *
+         *       // Data rows using the label/value pattern
+         *       ghost_label_value(phone, 5, 2, VALUE_COL, "LABEL", "value");
+         *       ghost_label_value(phone, 6, 2, VALUE_COL, "LABEL2","value2");
+         *
+         *       // Key hint at bottom
+         *       ghost_text(phone, PHONE_ROWS-3, 2, COL_HINT, "[↑↓] Scroll");
+         *   }
+         */
+        draw_frame(phone, tick, screen_name);
         tick++;
 
-        /*
-         * C CONCEPT: SWITCH STATEMENT
-         * ---------------------------
-         * Switch compares a value against multiple cases.
-         * It's like a series of if/else if/else, but more efficient
-         * and cleaner for multiple options.
-         *
-         * SYNTAX:
-         *   switch (value) {
-         *       case OPTION_A:
-         *           // code for option A
-         *           break;  // IMPORTANT: prevents "fall through"
-         *       case OPTION_B:
-         *           // code for option B
-         *           break;
-         *       default:
-         *           // code if no case matches
-         *           break;
-         *   }
-         *
-         * WARNING: Without "break", execution continues into the next case!
-         * This "fall through" is sometimes intentional but usually a bug.
-         */
         switch (current_screen) {
             case SCREEN_HOME:
                 screen_home_draw(phone);
                 break;
-
             case SCREEN_SETTINGS:
                 screen_settings_draw(phone);
                 break;
-
+            case SCREEN_CALLS:
+                screen_calls_draw(phone);
+                break;
+            case SCREEN_MESSAGES:
+                screen_messages_draw(phone);
+                break;
+            case SCREEN_CONTACTS:
+                screen_contacts_draw(phone);
+                break;
+            case SCREEN_MP3:
+                screen_mp3_draw(phone);
+                break;
+            case SCREEN_VOICE_MEMO:
+                screen_voice_memo_draw(phone);
+                break;
+            case SCREEN_NOTES:
+                screen_notes_draw(phone);
+                break;
+            /*
+             * HOW TO ADD A NEW SCREEN DRAW:
+             *   case SCREEN_CALLS:
+             *       screen_calls_draw(phone);
+             *       break;
+             */
             default:
-                /* Placeholder for unimplemented screens */
-                ncplane_set_fg_rgb(phone, COL_PLACEHOLDER);
-                ncplane_set_bg_rgb(phone, COL_BG);
-                ncplane_putstr_yx(phone, 4, 3, TEXT_COMING_SOON);
-                ncplane_set_fg_rgb(phone, COL_HINT);
-                ncplane_putstr_yx(phone, 6, 3, TEXT_GO_HOME);
+                ghost_text(phone, 4, 3, COL_PLACEHOLDER, TEXT_COMING_SOON);
+                ghost_text(phone, 6, 3, COL_HINT,        TEXT_GO_HOME);
                 break;
         }
 
+        /* ── RENDER PHASE ────────────────────────────────────────────────── */
         /*
-         * RENDER PHASE
-         * ------------
-         * Push all our drawing to the actual terminal.
+         * notcurses_render(nc)
+         * ─────────────────────
+         * Composites all planes from bottom (stdplane) to top (phone plane),
+         * diffs the result against the last rendered frame, and sends only
+         * the terminal escape codes needed to update changed cells.
          *
-         * notcurses_render() composites all planes together and sends
-         * the minimal set of escape codes needed to update the display.
-         * This is efficient - only changed cells are redrawn.
+         * This diff-and-patch approach is critical on slow links (UART, USB
+         * serial to a Pi) — it minimises the bytes sent to the terminal.
+         *
+         * ALWAYS call this after all drawing for the frame is complete.
          */
         notcurses_render(nc);
 
+        /* ── INPUT PHASE ─────────────────────────────────────────────────── */
         /*
-         * INPUT PHASE
-         * -----------
-         * Wait for user to press a key.
+         * notcurses_get_blocking(nc, &ni)
+         * ─────────────────────────────────
+         * Blocks until an input event arrives.  Returns the key code.
+         * The CPU is completely idle during the wait — no busy-looping.
+         * ni (ncinput) is filled with the full event details.
          *
-         * ncinput is a struct that holds input event details:
-         *   - id: The key code or Unicode codepoint
-         *   - y, x: Mouse position (if applicable)
-         *   - evtype: Event type (press, release, repeat)
-         *   - modifiers: Shift, Ctrl, Alt state
+         * KEY CODE REFERENCE:
+         * ────────────────────
+         * Regular characters:  'a' 'A' '1' ' ' '\n'  etc. (ASCII codepoints)
+         * Arrow keys:          NCKEY_UP  NCKEY_DOWN  NCKEY_LEFT  NCKEY_RIGHT
+         * Enter / Backspace:   NCKEY_ENTER  NCKEY_BACKSPACE
+         * Escape:              NCKEY_ESC
+         * Function keys:       NCKEY_F01 … NCKEY_F12
+         * Terminal resized:    NCKEY_RESIZE   ← sent when window size changes
          *
-         * notcurses_get_blocking() waits (blocks) until input arrives.
-         * The CPU is idle during this wait - no busy loop.
+         * Modifier check example:
+         *   if (ni.modifiers & NCKEY_MOD_CTRL && key == 'c') { … }
+         *
+         * PHYSICAL KEYPAD (your hardware buttons):
+         * Map button GPIO events to key codes in hardware.c, then handle
+         * those codes in the switch below.  A typical mapping:
+         *   UP button    → emit NCKEY_UP   (or 'k')
+         *   DOWN button  → emit NCKEY_DOWN (or 'j')
+         *   SELECT       → emit NCKEY_ENTER
+         *   BACK/ESC     → emit NCKEY_ESC  (or 'b')
          */
         ncinput ni;
         uint32_t key = notcurses_get_blocking(nc, &ni);
 
-        /*
-         * HANDLE GLOBAL KEYS
-         * ------------------
-         * These keys work on any screen.
+        /* GLOBAL KEYS — handled before routing to screen
          *
          * C CONCEPT: continue
-         * -------------------
-         * "continue" skips the rest of the loop body and jumps back to
-         * the beginning of the while loop. Useful for "handle this and
-         * move on" situations.
+         * ────────────────────
+         * Inside a loop, 'continue' skips the rest of the current iteration
+         * and jumps back to the top of the loop (the while condition).
+         * Use it when you've handled the input and want to immediately redraw.
+         *
+         * C CONCEPT: break (inside a loop)
+         * ─────────────────────────────────
+         * 'break' exits the nearest enclosing loop.
+         * Here it exits the while(1) loop, falling through to cleanup.
          */
-
-        /* NCKEY_RESIZE is sent when the terminal window is resized */
-        if (key == NCKEY_RESIZE) {
-            continue;  /* Just redraw with new size */
-        }
-
-        /* Quit: 'q' or 'Q' exits the program */
-        if (key == 'q' || key == 'Q') {
-            break;  /* Exit the while loop */
-        }
-
-        /* Home: 'h' or 'H' returns to home screen from anywhere */
+        if (key == NCKEY_RESIZE) { continue; }  /* redraw at new size */
+        if (key == 'q' || key == 'Q') { break; } /* quit */
         if (key == 'h' || key == 'H') {
             current_screen = SCREEN_HOME;
             continue;
         }
 
-        /*
-         * ROUTE INPUT TO ACTIVE SCREEN
-         * ----------------------------
-         * Each screen can have its own input handler that processes
-         * keys and potentially changes the current screen.
+        /* SCREEN-SPECIFIC INPUT ROUTING
+         *
+         * Each screen_*_input() receives the key and returns the new
+         * screen_id.  If the screen doesn't handle the key, it returns
+         * its own screen_id unchanged (a no-op navigation).
+         *
+         * PATTERN for all screen_*_input() functions:
+         * ────────────────────────────────────────────
+         *   screen_id screen_foo_input(uint32_t key) {
+         *       switch (key) {
+         *           case NCKEY_UP:
+         *               // move selection up
+         *               return SCREEN_FOO;   // stay on this screen
+         *           case NCKEY_DOWN:
+         *               // move selection down
+         *               return SCREEN_FOO;
+         *           case NCKEY_ENTER:
+         *               // confirm selection → navigate somewhere
+         *               return SCREEN_BAR;
+         *           case NCKEY_ESC:
+         *               return SCREEN_HOME;  // back to home
+         *           default:
+         *               return SCREEN_FOO;   // unhandled → stay
+         *       }
+         *   }
+         *
+         * NOTE: screen_*_input() should NOT draw anything.  Drawing
+         * happens only in screen_*_draw(), called at the top of the loop.
+         * Input functions only update state; the next loop iteration draws.
+         *
+         * HOW TO ADD INPUT FOR A NEW SCREEN:
+         *   case SCREEN_CALLS:
+         *       current_screen = screen_calls_input(key);
+         *       break;
          */
         switch (current_screen) {
             case SCREEN_HOME:
                 current_screen = screen_home_input(key);
                 break;
+            case SCREEN_SETTINGS:
+                current_screen = screen_settings_input(key);
+                break;
+            case SCREEN_CALLS:
+                current_screen = screen_calls_input(key);
+                break;
+            case SCREEN_MESSAGES:
+                current_screen = screen_messages_input(key);
+                break;
+            case SCREEN_CONTACTS:
+                current_screen = screen_contacts_input(key);
+                break;
+            case SCREEN_MP3:
+                current_screen = screen_mp3_input(key);
+                break;
+            case SCREEN_VOICE_MEMO:
+                current_screen = screen_voice_memo_input(key);
+                break;
+            case SCREEN_NOTES:
+                current_screen = screen_notes_input(key);
+                break;
             default:
-                /* Other screens don't handle input yet */
                 break;
         }
     }
 
+    /* ── Cleanup — REVERSE order of creation ────────────────────────────── */
     /*
-     * STEP 7: CLEANUP
-     * ---------------
-     * Free resources in REVERSE order of creation.
-     * This is a common C pattern - things that depend on other things
-     * should be cleaned up first.
+     * C CONCEPT: manual resource management
+     * ──────────────────────────────────────
+     * C has no garbage collector.  Every resource you acquire must be
+     * explicitly released, in reverse order of acquisition.
      *
-     * Order:
-     *   1. phone plane (child) - created last
-     *   2. notcurses context (parent) - created first
-     *   3. hardware interfaces
+     * ncplane_destroy(plane)
+     *   Frees this plane and all its children.
+     *   After this, the 'phone' pointer is dangling — never use it again.
+     *
+     * notcurses_stop(nc)
+     *   Destroys all remaining planes (including stdplane).
+     *   Restores terminal to normal mode (exits raw input).
+     *   Returns to normal screen (scrollback reappears).
+     *   Frees all internal Notcurses memory.
+     *   If you skip this after a crash, run 'reset' in the terminal to fix it.
+     *
+     * hardware_cleanup()
+     *   Closes any I2C/UART file descriptors opened by hardware_init().
      */
     ncplane_destroy(phone);
-
-    /*
-     * notcurses_stop() - Shut down the library
-     *
-     * This:
-     *   - Destroys all remaining planes
-     *   - Restores terminal to normal mode
-     *   - Frees all internal memory
-     *
-     * If you skip this (e.g., due to crash), your terminal will be broken.
-     * You can fix it by running "reset" in the terminal.
-     */
     notcurses_stop(nc);
-
+    settings_service_shutdown();
     hardware_cleanup();
 
-    return 0;  /* Success! */
+    return 0;
 }

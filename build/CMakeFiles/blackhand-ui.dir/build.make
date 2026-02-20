@@ -86,67 +86,227 @@ CMakeFiles/blackhand-ui.dir/src/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/main.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/main.c -o CMakeFiles/blackhand-ui.dir/src/main.c.s
 
-CMakeFiles/blackhand-ui.dir/src/screen_home.c.o: CMakeFiles/blackhand-ui.dir/flags.make
-CMakeFiles/blackhand-ui.dir/src/screen_home.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screen_home.c
-CMakeFiles/blackhand-ui.dir/src/screen_home.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/blackhand-ui.dir/src/screen_home.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screen_home.c.o -MF CMakeFiles/blackhand-ui.dir/src/screen_home.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screen_home.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screen_home.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_home.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_home.c
 
-CMakeFiles/blackhand-ui.dir/src/screen_home.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screen_home.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screen_home.c > CMakeFiles/blackhand-ui.dir/src/screen_home.c.i
+CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_home.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.i
 
-CMakeFiles/blackhand-ui.dir/src/screen_home.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screen_home.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screen_home.c -o CMakeFiles/blackhand-ui.dir/src/screen_home.c.s
+CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_home.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.s
 
-CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o: CMakeFiles/blackhand-ui.dir/flags.make
-CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screen_settings.c
-CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o -MF CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screen_settings.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c
 
-CMakeFiles/blackhand-ui.dir/src/screen_settings.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screen_settings.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screen_settings.c > CMakeFiles/blackhand-ui.dir/src/screen_settings.c.i
+CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.i
 
-CMakeFiles/blackhand-ui.dir/src/screen_settings.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screen_settings.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screen_settings.c -o CMakeFiles/blackhand-ui.dir/src/screen_settings.c.s
+CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.s
 
-CMakeFiles/blackhand-ui.dir/src/hardware.c.o: CMakeFiles/blackhand-ui.dir/flags.make
-CMakeFiles/blackhand-ui.dir/src/hardware.c.o: /Users/mrnoori/Desktop/blackhandUI/src/hardware.c
-CMakeFiles/blackhand-ui.dir/src/hardware.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/blackhand-ui.dir/src/hardware.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/hardware.c.o -MF CMakeFiles/blackhand-ui.dir/src/hardware.c.o.d -o CMakeFiles/blackhand-ui.dir/src/hardware.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/hardware.c
+CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o: /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c
+CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o -MF CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o.d -o CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c
 
-CMakeFiles/blackhand-ui.dir/src/hardware.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/hardware.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/hardware.c > CMakeFiles/blackhand-ui.dir/src/hardware.c.i
+CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c > CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.i
 
-CMakeFiles/blackhand-ui.dir/src/hardware.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/hardware.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/hardware.c -o CMakeFiles/blackhand-ui.dir/src/hardware.c.s
+CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c -o CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_messages.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_messages.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_messages.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_messages.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_contacts.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_contacts.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_contacts.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_contacts.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_mp3.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_mp3.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_mp3.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_mp3.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_voice_memo.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_voice_memo.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_voice_memo.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_voice_memo.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o: /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_notes.c
+CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o -MF CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o.d -o CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_notes.c
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_notes.c > CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.i
+
+CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_notes.c -o CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.s
+
+CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o: /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c
+CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o -MF CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o.d -o CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c
+
+CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c > CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.i
+
+CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c -o CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.s
+
+CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o: /Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c
+CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o -MF CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o.d -o CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c
+
+CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c > CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.i
+
+CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c -o CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.s
+
+CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o: /Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c
+CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o -MF CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o.d -o CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c
+
+CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c > CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.i
+
+CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c -o CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.s
+
+CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o: CMakeFiles/blackhand-ui.dir/flags.make
+CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o: /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c
+CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o: CMakeFiles/blackhand-ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o -MF CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o.d -o CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o -c /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c
+
+CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c > CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.i
+
+CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c -o CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.s
 
 # Object files for target blackhand-ui
 blackhand__ui_OBJECTS = \
 "CMakeFiles/blackhand-ui.dir/src/main.c.o" \
-"CMakeFiles/blackhand-ui.dir/src/screen_home.c.o" \
-"CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o" \
-"CMakeFiles/blackhand-ui.dir/src/hardware.c.o"
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o" \
+"CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o"
 
 # External object files for target blackhand-ui
 blackhand__ui_EXTERNAL_OBJECTS =
 
 blackhand-ui: CMakeFiles/blackhand-ui.dir/src/main.c.o
-blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screen_home.c.o
-blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o
-blackhand-ui: CMakeFiles/blackhand-ui.dir/src/hardware.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o
+blackhand-ui: CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o
 blackhand-ui: CMakeFiles/blackhand-ui.dir/build.make
 blackhand-ui: /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses.dylib
 blackhand-ui: /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses-core.dylib
 blackhand-ui: CMakeFiles/blackhand-ui.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C executable blackhand-ui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking C executable blackhand-ui"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/blackhand-ui.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

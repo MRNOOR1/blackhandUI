@@ -185,6 +185,7 @@ typedef enum {
  *   The main event loop in main.c, when current_screen == SCREEN_HOME
  */
 void screen_home_draw(struct ncplane *phone);
+screen_id screen_home_input(uint32_t key);
 
 /*
  * screen_settings_draw() — Draw the settings screen
@@ -196,6 +197,25 @@ void screen_home_draw(struct ncplane *phone);
  * Could be extended to show editable settings.
  */
 void screen_settings_draw(struct ncplane *phone);
+screen_id screen_settings_input(uint32_t key);
+
+void screen_calls_draw(struct ncplane *phone);
+screen_id screen_calls_input(uint32_t key);
+
+void screen_messages_draw(struct ncplane *phone);
+screen_id screen_messages_input(uint32_t key);
+
+void screen_contacts_draw(struct ncplane *phone);
+screen_id screen_contacts_input(uint32_t key);
+
+void screen_mp3_draw(struct ncplane *phone);
+screen_id screen_mp3_input(uint32_t key);
+
+void screen_voice_memo_draw(struct ncplane *phone);
+screen_id screen_voice_memo_input(uint32_t key);
+
+void screen_notes_draw(struct ncplane *phone);
+screen_id screen_notes_input(uint32_t key);
 
 /* ─── Screen Input Handlers ────────────────────────────────────────────── */
 
@@ -220,8 +240,6 @@ void screen_settings_draw(struct ncplane *phone);
  *   - Enter: Navigate to the selected screen
  *   - Other keys: Ignored (returns SCREEN_HOME)
  */
-screen_id screen_home_input(uint32_t key);
-
 /*
  * ADDING INPUT HANDLERS FOR OTHER SCREENS:
  *

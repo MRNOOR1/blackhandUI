@@ -129,30 +129,6 @@ blackhand-ui/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/build
 .PHONY : blackhand-ui/fast
 
-src/hardware.o: src/hardware.c.o
-.PHONY : src/hardware.o
-
-# target to build an object file
-src/hardware.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.o
-.PHONY : src/hardware.c.o
-
-src/hardware.i: src/hardware.c.i
-.PHONY : src/hardware.i
-
-# target to preprocess a source file
-src/hardware.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.i
-.PHONY : src/hardware.c.i
-
-src/hardware.s: src/hardware.c.s
-.PHONY : src/hardware.s
-
-# target to generate assembly for a file
-src/hardware.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/hardware.c.s
-.PHONY : src/hardware.c.s
-
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -177,53 +153,317 @@ src/main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/main.c.s
 .PHONY : src/main.c.s
 
-src/screen_home.o: src/screen_home.c.o
-.PHONY : src/screen_home.o
+src/platform/hardware.o: src/platform/hardware.c.o
+.PHONY : src/platform/hardware.o
 
 # target to build an object file
-src/screen_home.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_home.c.o
-.PHONY : src/screen_home.c.o
+src/platform/hardware.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o
+.PHONY : src/platform/hardware.c.o
 
-src/screen_home.i: src/screen_home.c.i
-.PHONY : src/screen_home.i
+src/platform/hardware.i: src/platform/hardware.c.i
+.PHONY : src/platform/hardware.i
 
 # target to preprocess a source file
-src/screen_home.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_home.c.i
-.PHONY : src/screen_home.c.i
+src/platform/hardware.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.i
+.PHONY : src/platform/hardware.c.i
 
-src/screen_home.s: src/screen_home.c.s
-.PHONY : src/screen_home.s
+src/platform/hardware.s: src/platform/hardware.c.s
+.PHONY : src/platform/hardware.s
 
 # target to generate assembly for a file
-src/screen_home.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_home.c.s
-.PHONY : src/screen_home.c.s
+src/platform/hardware.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s
+.PHONY : src/platform/hardware.c.s
 
-src/screen_settings.o: src/screen_settings.c.o
-.PHONY : src/screen_settings.o
+src/screens/screen_calls.o: src/screens/screen_calls.c.o
+.PHONY : src/screens/screen_calls.o
 
 # target to build an object file
-src/screen_settings.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_settings.c.o
-.PHONY : src/screen_settings.c.o
+src/screens/screen_calls.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o
+.PHONY : src/screens/screen_calls.c.o
 
-src/screen_settings.i: src/screen_settings.c.i
-.PHONY : src/screen_settings.i
+src/screens/screen_calls.i: src/screens/screen_calls.c.i
+.PHONY : src/screens/screen_calls.i
 
 # target to preprocess a source file
-src/screen_settings.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_settings.c.i
-.PHONY : src/screen_settings.c.i
+src/screens/screen_calls.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.i
+.PHONY : src/screens/screen_calls.c.i
 
-src/screen_settings.s: src/screen_settings.c.s
-.PHONY : src/screen_settings.s
+src/screens/screen_calls.s: src/screens/screen_calls.c.s
+.PHONY : src/screens/screen_calls.s
 
 # target to generate assembly for a file
-src/screen_settings.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screen_settings.c.s
-.PHONY : src/screen_settings.c.s
+src/screens/screen_calls.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.s
+.PHONY : src/screens/screen_calls.c.s
+
+src/screens/screen_contacts.o: src/screens/screen_contacts.c.o
+.PHONY : src/screens/screen_contacts.o
+
+# target to build an object file
+src/screens/screen_contacts.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o
+.PHONY : src/screens/screen_contacts.c.o
+
+src/screens/screen_contacts.i: src/screens/screen_contacts.c.i
+.PHONY : src/screens/screen_contacts.i
+
+# target to preprocess a source file
+src/screens/screen_contacts.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.i
+.PHONY : src/screens/screen_contacts.c.i
+
+src/screens/screen_contacts.s: src/screens/screen_contacts.c.s
+.PHONY : src/screens/screen_contacts.s
+
+# target to generate assembly for a file
+src/screens/screen_contacts.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.s
+.PHONY : src/screens/screen_contacts.c.s
+
+src/screens/screen_home.o: src/screens/screen_home.c.o
+.PHONY : src/screens/screen_home.o
+
+# target to build an object file
+src/screens/screen_home.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.o
+.PHONY : src/screens/screen_home.c.o
+
+src/screens/screen_home.i: src/screens/screen_home.c.i
+.PHONY : src/screens/screen_home.i
+
+# target to preprocess a source file
+src/screens/screen_home.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.i
+.PHONY : src/screens/screen_home.c.i
+
+src/screens/screen_home.s: src/screens/screen_home.c.s
+.PHONY : src/screens/screen_home.s
+
+# target to generate assembly for a file
+src/screens/screen_home.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_home.c.s
+.PHONY : src/screens/screen_home.c.s
+
+src/screens/screen_messages.o: src/screens/screen_messages.c.o
+.PHONY : src/screens/screen_messages.o
+
+# target to build an object file
+src/screens/screen_messages.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.o
+.PHONY : src/screens/screen_messages.c.o
+
+src/screens/screen_messages.i: src/screens/screen_messages.c.i
+.PHONY : src/screens/screen_messages.i
+
+# target to preprocess a source file
+src/screens/screen_messages.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.i
+.PHONY : src/screens/screen_messages.c.i
+
+src/screens/screen_messages.s: src/screens/screen_messages.c.s
+.PHONY : src/screens/screen_messages.s
+
+# target to generate assembly for a file
+src/screens/screen_messages.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_messages.c.s
+.PHONY : src/screens/screen_messages.c.s
+
+src/screens/screen_mp3.o: src/screens/screen_mp3.c.o
+.PHONY : src/screens/screen_mp3.o
+
+# target to build an object file
+src/screens/screen_mp3.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.o
+.PHONY : src/screens/screen_mp3.c.o
+
+src/screens/screen_mp3.i: src/screens/screen_mp3.c.i
+.PHONY : src/screens/screen_mp3.i
+
+# target to preprocess a source file
+src/screens/screen_mp3.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.i
+.PHONY : src/screens/screen_mp3.c.i
+
+src/screens/screen_mp3.s: src/screens/screen_mp3.c.s
+.PHONY : src/screens/screen_mp3.s
+
+# target to generate assembly for a file
+src/screens/screen_mp3.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_mp3.c.s
+.PHONY : src/screens/screen_mp3.c.s
+
+src/screens/screen_notes.o: src/screens/screen_notes.c.o
+.PHONY : src/screens/screen_notes.o
+
+# target to build an object file
+src/screens/screen_notes.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.o
+.PHONY : src/screens/screen_notes.c.o
+
+src/screens/screen_notes.i: src/screens/screen_notes.c.i
+.PHONY : src/screens/screen_notes.i
+
+# target to preprocess a source file
+src/screens/screen_notes.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.i
+.PHONY : src/screens/screen_notes.c.i
+
+src/screens/screen_notes.s: src/screens/screen_notes.c.s
+.PHONY : src/screens/screen_notes.s
+
+# target to generate assembly for a file
+src/screens/screen_notes.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_notes.c.s
+.PHONY : src/screens/screen_notes.c.s
+
+src/screens/screen_settings.o: src/screens/screen_settings.c.o
+.PHONY : src/screens/screen_settings.o
+
+# target to build an object file
+src/screens/screen_settings.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o
+.PHONY : src/screens/screen_settings.c.o
+
+src/screens/screen_settings.i: src/screens/screen_settings.c.i
+.PHONY : src/screens/screen_settings.i
+
+# target to preprocess a source file
+src/screens/screen_settings.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.i
+.PHONY : src/screens/screen_settings.c.i
+
+src/screens/screen_settings.s: src/screens/screen_settings.c.s
+.PHONY : src/screens/screen_settings.s
+
+# target to generate assembly for a file
+src/screens/screen_settings.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.s
+.PHONY : src/screens/screen_settings.c.s
+
+src/screens/screen_voice_memo.o: src/screens/screen_voice_memo.c.o
+.PHONY : src/screens/screen_voice_memo.o
+
+# target to build an object file
+src/screens/screen_voice_memo.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o
+.PHONY : src/screens/screen_voice_memo.c.o
+
+src/screens/screen_voice_memo.i: src/screens/screen_voice_memo.c.i
+.PHONY : src/screens/screen_voice_memo.i
+
+# target to preprocess a source file
+src/screens/screen_voice_memo.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.i
+.PHONY : src/screens/screen_voice_memo.c.i
+
+src/screens/screen_voice_memo.s: src/screens/screen_voice_memo.c.s
+.PHONY : src/screens/screen_voice_memo.s
+
+# target to generate assembly for a file
+src/screens/screen_voice_memo.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s
+.PHONY : src/screens/screen_voice_memo.c.s
+
+src/services/mp3_service.o: src/services/mp3_service.c.o
+.PHONY : src/services/mp3_service.o
+
+# target to build an object file
+src/services/mp3_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o
+.PHONY : src/services/mp3_service.c.o
+
+src/services/mp3_service.i: src/services/mp3_service.c.i
+.PHONY : src/services/mp3_service.i
+
+# target to preprocess a source file
+src/services/mp3_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.i
+.PHONY : src/services/mp3_service.c.i
+
+src/services/mp3_service.s: src/services/mp3_service.c.s
+.PHONY : src/services/mp3_service.s
+
+# target to generate assembly for a file
+src/services/mp3_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.s
+.PHONY : src/services/mp3_service.c.s
+
+src/services/notes_service.o: src/services/notes_service.c.o
+.PHONY : src/services/notes_service.o
+
+# target to build an object file
+src/services/notes_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o
+.PHONY : src/services/notes_service.c.o
+
+src/services/notes_service.i: src/services/notes_service.c.i
+.PHONY : src/services/notes_service.i
+
+# target to preprocess a source file
+src/services/notes_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.i
+.PHONY : src/services/notes_service.c.i
+
+src/services/notes_service.s: src/services/notes_service.c.s
+.PHONY : src/services/notes_service.s
+
+# target to generate assembly for a file
+src/services/notes_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.s
+.PHONY : src/services/notes_service.c.s
+
+src/services/settings_service.o: src/services/settings_service.c.o
+.PHONY : src/services/settings_service.o
+
+# target to build an object file
+src/services/settings_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o
+.PHONY : src/services/settings_service.c.o
+
+src/services/settings_service.i: src/services/settings_service.c.i
+.PHONY : src/services/settings_service.i
+
+# target to preprocess a source file
+src/services/settings_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.i
+.PHONY : src/services/settings_service.c.i
+
+src/services/settings_service.s: src/services/settings_service.c.s
+.PHONY : src/services/settings_service.s
+
+# target to generate assembly for a file
+src/services/settings_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.s
+.PHONY : src/services/settings_service.c.s
+
+src/services/voice_memo_service.o: src/services/voice_memo_service.c.o
+.PHONY : src/services/voice_memo_service.o
+
+# target to build an object file
+src/services/voice_memo_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o
+.PHONY : src/services/voice_memo_service.c.o
+
+src/services/voice_memo_service.i: src/services/voice_memo_service.c.i
+.PHONY : src/services/voice_memo_service.i
+
+# target to preprocess a source file
+src/services/voice_memo_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.i
+.PHONY : src/services/voice_memo_service.c.i
+
+src/services/voice_memo_service.s: src/services/voice_memo_service.c.s
+.PHONY : src/services/voice_memo_service.s
+
+# target to generate assembly for a file
+src/services/voice_memo_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.s
+.PHONY : src/services/voice_memo_service.c.s
 
 # Help Target
 help:
@@ -234,18 +474,48 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... blackhand-ui"
-	@echo "... src/hardware.o"
-	@echo "... src/hardware.i"
-	@echo "... src/hardware.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/screen_home.o"
-	@echo "... src/screen_home.i"
-	@echo "... src/screen_home.s"
-	@echo "... src/screen_settings.o"
-	@echo "... src/screen_settings.i"
-	@echo "... src/screen_settings.s"
+	@echo "... src/platform/hardware.o"
+	@echo "... src/platform/hardware.i"
+	@echo "... src/platform/hardware.s"
+	@echo "... src/screens/screen_calls.o"
+	@echo "... src/screens/screen_calls.i"
+	@echo "... src/screens/screen_calls.s"
+	@echo "... src/screens/screen_contacts.o"
+	@echo "... src/screens/screen_contacts.i"
+	@echo "... src/screens/screen_contacts.s"
+	@echo "... src/screens/screen_home.o"
+	@echo "... src/screens/screen_home.i"
+	@echo "... src/screens/screen_home.s"
+	@echo "... src/screens/screen_messages.o"
+	@echo "... src/screens/screen_messages.i"
+	@echo "... src/screens/screen_messages.s"
+	@echo "... src/screens/screen_mp3.o"
+	@echo "... src/screens/screen_mp3.i"
+	@echo "... src/screens/screen_mp3.s"
+	@echo "... src/screens/screen_notes.o"
+	@echo "... src/screens/screen_notes.i"
+	@echo "... src/screens/screen_notes.s"
+	@echo "... src/screens/screen_settings.o"
+	@echo "... src/screens/screen_settings.i"
+	@echo "... src/screens/screen_settings.s"
+	@echo "... src/screens/screen_voice_memo.o"
+	@echo "... src/screens/screen_voice_memo.i"
+	@echo "... src/screens/screen_voice_memo.s"
+	@echo "... src/services/mp3_service.o"
+	@echo "... src/services/mp3_service.i"
+	@echo "... src/services/mp3_service.s"
+	@echo "... src/services/notes_service.o"
+	@echo "... src/services/notes_service.i"
+	@echo "... src/services/notes_service.s"
+	@echo "... src/services/settings_service.o"
+	@echo "... src/services/settings_service.i"
+	@echo "... src/services/settings_service.s"
+	@echo "... src/services/voice_memo_service.o"
+	@echo "... src/services/voice_memo_service.i"
+	@echo "... src/services/voice_memo_service.s"
 .PHONY : help
 
 

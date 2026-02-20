@@ -163,7 +163,7 @@
  * compiler verify that the implementations match the declarations.
  * If they don't match, you get a compile error (which is good!).
  */
-#include "hardware.h"
+#include "platform/hardware.h"
 
 /*
  * <string.h> - String Functions

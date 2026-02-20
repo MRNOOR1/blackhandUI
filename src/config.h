@@ -75,7 +75,6 @@ Nav bar
 #define COL_GHOST_PCT           0x2C2C2C
 #define COL_GHOST_LOW           0x7F1D1D
 #define STATUS_BATTERY_PCT_COL  (STATUS_BATTERY_COL + 5)
-#define STATUS_SIGNAL_PREFIX_COL (STATUS_SIGNAL_COL - 1)
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PHONE DIMENSIONS
  * ═══════════════════════════════════════════════════════════════════════════
@@ -93,7 +92,7 @@ Nav bar
  */
 
 /* Width of the phone plane in terminal columns */
-#define PHONE_COLS          50
+#define PHONE_COLS          30
 
 /* Height of the phone plane in terminal rows */
 #define PHONE_ROWS          15
@@ -294,11 +293,9 @@ Nav bar
  * STATUS_SIGNAL_COL  - Column where signal icon starts
  *
  * Battery is on the left (col 2, leaving room for border).
- * Signal is on the right (col 40, near the right edge).
- * Adjust STATUS_SIGNAL_COL if you change PHONE_COLS.
+ * Signal is right-anchored dynamically in draw_signal() (cols - 6).
  */
 #define STATUS_BATTERY_COL  2
-#define STATUS_SIGNAL_COL   40
 
 /* ─── Home Screen Layout ───────────────────────────────────────────────── */
 
