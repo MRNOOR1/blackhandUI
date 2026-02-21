@@ -1,5 +1,7 @@
-CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: \
-  /Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c \
+CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o: \
+  /Users/mrnoori/Desktop/blackhandUI/src/frame_renderer.c \
+  /Users/mrnoori/Desktop/blackhandUI/src/frame_renderer.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/notcurses.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/time.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_time.h \
@@ -123,7 +125,6 @@ CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/syslimits.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet/in.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_addr_t.h \
@@ -174,7 +175,7 @@ CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/arch.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncseqs.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.h \
   /Users/mrnoori/Desktop/blackhandUI/src/config.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.h
+  /Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.h

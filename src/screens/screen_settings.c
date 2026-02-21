@@ -1,11 +1,12 @@
 
 #include <notcurses/notcurses.h>
 #include <stdint.h>
-
+#include "services/theme_service.h"
 #include "ui.h"
 #include "config.h"
 
 #include "services/settings_service.h"
+#include "services/theme_service.h"
 
 /* ── Settings items ────────────────────────────────────────────────────── */
 
@@ -28,12 +29,12 @@ void screen_settings_draw(struct ncplane *phone) {
         int row = SETTINGS_FIRST_ROW + i;
         if (row >= (int)rows - 1) break;
 
-        uint32_t fg = (i == selected) ? COL_MENU_SELECTED : COL_SETTINGS_TEXT;
+        uint32_t fg = (i == selected) ? theme_text_primary() : theme_text_muted();
         const char *cursor = (i == selected) ? MENU_CURSOR : MENU_CURSOR_BLANK;
         const char *check  = settings_service_enabled(i) ? "☑ " : "☐ ";
 
         ncplane_set_fg_rgb(phone, fg);
-        ncplane_set_bg_rgb(phone, COL_BG);
+        ncplane_set_bg_rgb(phone, theme_bg());
         ncplane_putstr_yx(phone, row, SETTINGS_CONTENT_COL, cursor);
         ncplane_putstr_yx(phone, row, SETTINGS_CONTENT_COL + 2, check);
         ncplane_putstr_yx(phone, row, SETTINGS_CONTENT_COL + 4, settings_service_label(i));
@@ -55,6 +56,7 @@ screen_id screen_settings_input(uint32_t key) {
         case NCKEY_ENTER:
         case '\n':
             settings_service_toggle(selected);
+            theme_service_sync_from_settings();
             return SCREEN_SETTINGS;
         case NCKEY_ESC:
         case 'b':

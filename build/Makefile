@@ -129,6 +129,54 @@ blackhand-ui/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/build
 .PHONY : blackhand-ui/fast
 
+src/draw_utils.o: src/draw_utils.c.o
+.PHONY : src/draw_utils.o
+
+# target to build an object file
+src/draw_utils.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o
+.PHONY : src/draw_utils.c.o
+
+src/draw_utils.i: src/draw_utils.c.i
+.PHONY : src/draw_utils.i
+
+# target to preprocess a source file
+src/draw_utils.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/draw_utils.c.i
+.PHONY : src/draw_utils.c.i
+
+src/draw_utils.s: src/draw_utils.c.s
+.PHONY : src/draw_utils.s
+
+# target to generate assembly for a file
+src/draw_utils.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/draw_utils.c.s
+.PHONY : src/draw_utils.c.s
+
+src/frame_renderer.o: src/frame_renderer.c.o
+.PHONY : src/frame_renderer.o
+
+# target to build an object file
+src/frame_renderer.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o
+.PHONY : src/frame_renderer.c.o
+
+src/frame_renderer.i: src/frame_renderer.c.i
+.PHONY : src/frame_renderer.i
+
+# target to preprocess a source file
+src/frame_renderer.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.i
+.PHONY : src/frame_renderer.c.i
+
+src/frame_renderer.s: src/frame_renderer.c.s
+.PHONY : src/frame_renderer.s
+
+# target to generate assembly for a file
+src/frame_renderer.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.s
+.PHONY : src/frame_renderer.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -441,6 +489,30 @@ src/services/settings_service.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.s
 .PHONY : src/services/settings_service.c.s
 
+src/services/theme_service.o: src/services/theme_service.c.o
+.PHONY : src/services/theme_service.o
+
+# target to build an object file
+src/services/theme_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o
+.PHONY : src/services/theme_service.c.o
+
+src/services/theme_service.i: src/services/theme_service.c.i
+.PHONY : src/services/theme_service.i
+
+# target to preprocess a source file
+src/services/theme_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.i
+.PHONY : src/services/theme_service.c.i
+
+src/services/theme_service.s: src/services/theme_service.c.s
+.PHONY : src/services/theme_service.s
+
+# target to generate assembly for a file
+src/services/theme_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.s
+.PHONY : src/services/theme_service.c.s
+
 src/services/voice_memo_service.o: src/services/voice_memo_service.c.o
 .PHONY : src/services/voice_memo_service.o
 
@@ -474,6 +546,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... blackhand-ui"
+	@echo "... src/draw_utils.o"
+	@echo "... src/draw_utils.i"
+	@echo "... src/draw_utils.s"
+	@echo "... src/frame_renderer.o"
+	@echo "... src/frame_renderer.i"
+	@echo "... src/frame_renderer.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
@@ -513,6 +591,9 @@ help:
 	@echo "... src/services/settings_service.o"
 	@echo "... src/services/settings_service.i"
 	@echo "... src/services/settings_service.s"
+	@echo "... src/services/theme_service.o"
+	@echo "... src/services/theme_service.i"
+	@echo "... src/services/theme_service.s"
 	@echo "... src/services/voice_memo_service.o"
 	@echo "... src/services/voice_memo_service.i"
 	@echo "... src/services/voice_memo_service.s"

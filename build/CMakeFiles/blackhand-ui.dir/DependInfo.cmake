@@ -8,6 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/mrnoori/Desktop/blackhandUI/src/draw_utils.c" "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o.d"
+  "/Users/mrnoori/Desktop/blackhandUI/src/frame_renderer.c" "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/main.c" "CMakeFiles/blackhand-ui.dir/src/main.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/main.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c" "CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o.d"
@@ -21,6 +23,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c" "CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c" "CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c" "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o.d"
+  "/Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.c" "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c" "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o.d"
   )
 

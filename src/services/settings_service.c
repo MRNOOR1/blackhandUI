@@ -1,8 +1,6 @@
 #include "settings_service.h"
+#include <assert.h>
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
 
 typedef struct {
     const char *key;
@@ -80,4 +78,18 @@ void settings_service_toggle(int index) {
     if (index < 0 || index >= g_item_count) return;
     g_items[index].enabled = !g_items[index].enabled;
     settings_service_save();
+}
+void settings_service_toggle_by_key(const char *key) {
+    int index = find_index_by_key(key);
+    assert(index >= 0);
+    if (index < 0) return;
+    g_items[index].enabled = !g_items[index].enabled;
+    settings_service_save();
+}
+
+bool settings_service_get_bool(const char *key){
+    int index = find_index_by_key(key);
+    assert(index >= 0);
+    if (index < 0) return false;
+    return g_items[index].enabled;
 }

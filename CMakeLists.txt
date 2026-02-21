@@ -6,6 +6,8 @@ pkg_check_modules(NOTCURSES REQUIRED IMPORTED_TARGET notcurses)
 
 add_executable(blackhand-ui
     src/main.c
+    src/draw_utils.c
+    src/frame_renderer.c
     src/screens/screen_home.c
     src/screens/screen_settings.c
     src/platform/hardware.c
@@ -19,6 +21,7 @@ add_executable(blackhand-ui
     src/services/mp3_service.c
     src/services/notes_service.c
     src/services/voice_memo_service.c
+    src/services/theme_service.c
 )
 
 target_include_directories(blackhand-ui PRIVATE

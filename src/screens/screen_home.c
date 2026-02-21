@@ -84,6 +84,7 @@
  *   - MENU_CURSOR, MENU_CURSOR_BLANK (selection indicator)
  */
 #include "config.h"
+#include "services/theme_service.h"
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -333,7 +334,7 @@ void screen_home_draw(struct ncplane *phone) {
          *       fg = COL_MENU_NORMAL;
          *   }
          */
-        uint32_t fg = (i == selected) ? COL_MENU_SELECTED : COL_MENU_NORMAL;
+        uint32_t fg = (i == selected) ? theme_text_primary() : theme_text_muted();
         const char *cursor = (i == selected) ? MENU_CURSOR : MENU_CURSOR_BLANK;
 
         /*
@@ -351,7 +352,7 @@ void screen_home_draw(struct ncplane *phone) {
          *   Row is the Y coordinate (vertical), Col is X (horizontal).
          */
         ncplane_set_fg_rgb(phone, fg);
-        ncplane_set_bg_rgb(phone, COL_BG);
+        ncplane_set_bg_rgb(phone, theme_bg());
 
         /* Draw cursor (▸ if selected, blank spaces if not) */
         ncplane_putstr_yx(phone, row, HOME_CONTENT_COL, cursor);

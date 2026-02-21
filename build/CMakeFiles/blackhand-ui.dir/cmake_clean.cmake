@@ -1,4 +1,8 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o"
+  "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o.d"
+  "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o"
+  "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/main.c.o"
   "CMakeFiles/blackhand-ui.dir/src/main.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o"
@@ -25,6 +29,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o"
   "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o.d"
+  "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o"
+  "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o.d"
   "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o"
   "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o.d"
   "blackhand-ui"
