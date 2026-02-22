@@ -184,4 +184,15 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o: \
   /Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.h \
   /Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.h \
   /Users/mrnoori/Desktop/blackhandUI/src/frame_renderer.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.h
+  /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stddef.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_header_macro.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_ptrdiff_t.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_size_t.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_rsize_t.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_wchar_t.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_null.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_max_align_t.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_offsetof.h

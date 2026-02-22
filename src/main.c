@@ -199,6 +199,7 @@
 #include "frame_renderer.h"
 #include "draw_utils.h"
 #include "services/theme_service.h"
+#include "services/notes_service.h"
 
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -325,6 +326,7 @@ int main(void) {
     hardware_init();
     settings_service_init();
     theme_service_init();
+    notes_service_init();
 
     /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
@@ -679,6 +681,7 @@ int main(void) {
      */
     ncplane_destroy(phone);
     notcurses_stop(nc);
+    notes_service_shutdown();
     settings_service_shutdown();
     hardware_cleanup();
 

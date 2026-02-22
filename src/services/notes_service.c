@@ -9,10 +9,38 @@
 #define INITIAL_NOTES_CAPACITY 16
 #define MAX_LINE_LENGTH 256
 
-Note **notes_index = NULL;
-size_t notes_count = 0;
-size_t notes_capacity = 0;
+static Note **notes_index = NULL;
+static size_t notes_count = 0;
+static size_t notes_capacity = 0;
 static const char *NOTES_PATH = "./Notes";
+
+/* Ensure notes_index has room for at least one more entry.
+ * Returns 0 on success, -1 on allocation failure. */
+static int ensure_capacity(void)
+{
+	if (notes_count < notes_capacity)
+		return 0;
+
+	size_t new_capacity = notes_capacity * 2;
+	Note **new_array = realloc(notes_index, new_capacity * sizeof(Note *));
+	if (!new_array)
+	{
+		fprintf(stderr, "Failed to resize notes array\n");
+		return -1;
+	}
+	notes_index = new_array;
+	notes_capacity = new_capacity;
+	return 0;
+}
+
+/* Insert a note at index 0 (newest-first) */
+static void insert_at_front(Note *note)
+{
+	for (size_t j = notes_count; j > 0; j--)
+		notes_index[j] = notes_index[j - 1];
+	notes_index[0] = note;
+	notes_count++;
+}
 
 void notes_service_init(void)
 {
@@ -127,32 +155,16 @@ void notes_service_init(void)
 
 		fclose(f);
 
-		// Resize array if needed
-		if (notes_count >= notes_capacity)
+		if (ensure_capacity() != 0)
 		{
-			size_t new_capacity = notes_capacity * 2;
-			Note **new_array = realloc(notes_index, new_capacity * sizeof(Note *));
-			if (!new_array)
-			{
-				fprintf(stderr, "Failed to resize notes array\n");
-				free(new_note->filename);
-				free(new_note->title);
-				free(new_note->created_at);
-				free(new_note->content);
-				free(new_note);
-				continue;
-			}
-			notes_index = new_array;
-			notes_capacity = new_capacity;
+			free(new_note->filename);
+			free(new_note->title);
+			free(new_note->created_at);
+			free(new_note->content);
+			free(new_note);
+			continue;
 		}
-
-		// Insert newest-first (index 0)
-		for (size_t j = notes_count; j > 0; j--)
-		{
-			notes_index[j] = notes_index[j - 1];
-		}
-		notes_index[0] = new_note;
-		notes_count++;
+		insert_at_front(new_note);
 	}
 
 	closedir(dir);
@@ -186,31 +198,17 @@ Note *notes_service_create(const char *title, const char *content)
 	new_note->created_at = strdup(created);
 	new_note->title = strdup(title ? title : "Untitled");
 	new_note->content = strdup(content ? content : "");
-	if (notes_count >= notes_capacity)
-	{
-		size_t new_capacity = notes_capacity * 2;
-		Note **new_array = realloc(notes_index, new_capacity * sizeof(Note *));
-		if (!new_array)
-		{
-			fprintf(stderr, "Failed to resize notes array\n");
-			free(new_note->filename);
-			free(new_note->title);
-			free(new_note->created_at);
-			free(new_note->content);
-			free(new_note);
-			return NULL;
-		}
-		notes_index = new_array;
-		notes_capacity = new_capacity;
-	}
 
-	// Insert newest-first (index 0)
-	for (size_t j = notes_count; j > 0; j--)
+	if (ensure_capacity() != 0)
 	{
-		notes_index[j] = notes_index[j - 1];
+		free(new_note->filename);
+		free(new_note->title);
+		free(new_note->created_at);
+		free(new_note->content);
+		free(new_note);
+		return NULL;
 	}
-	notes_index[0] = new_note;
-	notes_count++;
+	insert_at_front(new_note);
 
 	char filepath[1024];
 	snprintf(filepath, sizeof(filepath), "%s/%s", NOTES_PATH, new_note->filename);
@@ -229,13 +227,13 @@ Note *notes_service_create(const char *title, const char *content)
 
 	return new_note;
 }
-void notes_service_print(const Note *n);
+
 
 const Note *notes_service_get_note_by_filename(const char *filename)
 {
 	if (notes_count == 0)
 		return NULL;
-	for (int i = 0; i < notes_count; i++)
+	for (size_t i = 0; i < notes_count; i++)
 	{
 		Note *note = notes_index[i];
 		if (strcmp(note->filename, filename) == 0)
@@ -248,11 +246,16 @@ int notes_service_delete_note(const Note *n)
 {
 	if (notes_count == 0)
 		return 1;
-	for (int i = 0; i < notes_count; i++)
+	for (size_t i = 0; i < notes_count; i++)
 	{
 		Note *note = notes_index[i];
 		if (strcmp(note->filename, n->filename) == 0)
 		{
+			// Delete file from disk
+			char filepath[1024];
+			snprintf(filepath, sizeof(filepath), "%s/%s", NOTES_PATH, note->filename);
+			remove(filepath);
+
 			// Free all fields
 			free(note->filename);
 			free(note->title);
@@ -280,14 +283,18 @@ int notes_service_update_note(Note *n)
 		Note *note = notes_index[i];
 		if (strcmp(note->filename, n->filename) == 0)
 		{
-			free(note->title);
-			note->title = strdup(n->title ? n->title : "Untitled");
+			/* Guard against use-after-free when n == note */
+			if (n != note)
+			{
+				free(note->title);
+				note->title = strdup(n->title ? n->title : "Untitled");
 
-			free(note->created_at);
-			note->created_at = strdup(n->created_at ? n->created_at : "Unknown");
+				free(note->created_at);
+				note->created_at = strdup(n->created_at ? n->created_at : "Unknown");
 
-			free(note->content);
-			note->content = strdup(n->content ? n->content : "");
+				free(note->content);
+				note->content = strdup(n->content ? n->content : "");
+			}
 
 			if (i != 0)
 			{
@@ -295,6 +302,18 @@ int notes_service_update_note(Note *n)
 				for (size_t j = i; j > 0; j--)
 					notes_index[j] = notes_index[j - 1];
 				notes_index[0] = tmp;
+			}
+
+			/* Write updated note to disk */
+			char filepath[1024];
+			snprintf(filepath, sizeof(filepath), "%s/%s", NOTES_PATH, note->filename);
+			FILE *f = fopen(filepath, "w");
+			if (f)
+			{
+				fprintf(f, "Title: %s\n", note->title);
+				fprintf(f, "Created: %s\n\n", note->created_at);
+				fprintf(f, "%s", note->content);
+				fclose(f);
 			}
 
 			return 0;
