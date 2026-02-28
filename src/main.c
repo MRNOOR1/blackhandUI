@@ -200,6 +200,7 @@
 #include "draw_utils.h"
 #include "services/theme_service.h"
 #include "services/notes_service.h"
+#include "services/mp3_service.h"
 
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -327,6 +328,7 @@ int main(void) {
     settings_service_init();
     theme_service_init();
     notes_service_init();
+    mp3_service_init("./Music");
 
     /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
@@ -544,11 +546,11 @@ int main(void) {
 
         /* ── INPUT PHASE ─────────────────────────────────────────────────── */
         /*
-         * notcurses_get_blocking(nc, &ni)
-         * ─────────────────────────────────
-         * Blocks until an input event arrives.  Returns the key code.
-         * The CPU is completely idle during the wait — no busy-looping.
-         * ni (ncinput) is filled with the full event details.
+         * notcurses_get(nc, &timeout, &ni)
+         * ────────────────────────────────
+         * Waits up to timeout for input, then returns 0 if none arrived.
+         * This keeps the UI live (timers/visualizer animate) while still
+         * avoiding a busy-loop.
          *
          * KEY CODE REFERENCE:
          * ────────────────────
@@ -571,7 +573,11 @@ int main(void) {
          *   BACK/ESC     → emit NCKEY_ESC  (or 'b')
          */
         ncinput ni;
-        uint32_t key = notcurses_get_blocking(nc, &ni);
+        struct timespec timeout = { .tv_sec = 0, .tv_nsec = 33000000L };
+        uint32_t key = notcurses_get(nc, &timeout, &ni);
+        if (key == 0) {
+            continue;
+        }
 
         /* GLOBAL KEYS — handled before routing to screen
          *
@@ -681,6 +687,7 @@ int main(void) {
      */
     ncplane_destroy(phone);
     notcurses_stop(nc);
+    mp3_service_shutdown();
     notes_service_shutdown();
     settings_service_shutdown();
     hardware_cleanup();

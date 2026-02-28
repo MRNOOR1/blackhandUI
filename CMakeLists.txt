@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 project(blackhand_ui C)
 
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 pkg_check_modules(NOTCURSES REQUIRED IMPORTED_TARGET notcurses)
+pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+pkg_check_modules(OUT123 REQUIRED IMPORTED_TARGET libout123)
 
 add_executable(blackhand-ui
     src/main.c
@@ -26,6 +29,13 @@ add_executable(blackhand-ui
 
 target_include_directories(blackhand-ui PRIVATE
     ${NOTCURSES_INCLUDE_DIRS}
+    ${MPG123_INCLUDE_DIRS}
+    ${OUT123_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_libraries(blackhand-ui PkgConfig::NOTCURSES)
+target_link_libraries(blackhand-ui
+    PkgConfig::NOTCURSES
+    PkgConfig::MPG123
+    PkgConfig::OUT123
+    Threads::Threads
+)

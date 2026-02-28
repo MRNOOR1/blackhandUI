@@ -1,6 +1,6 @@
 # Black Hand UI
 
-Notcurses-based UI scaffold for host development and later Buildroot integration for BLACKHAND 
+Notcurses-based UI scaffold for host development and later Buildroot integration for BLACKHAND
 
 ## Build (macOS)
 

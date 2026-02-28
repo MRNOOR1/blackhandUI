@@ -353,6 +353,8 @@ blackhand-ui: CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o
 blackhand-ui: CMakeFiles/blackhand-ui.dir/build.make
 blackhand-ui: /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses.dylib
 blackhand-ui: /opt/homebrew/Cellar/notcurses/3.0.17/lib/libnotcurses-core.dylib
+blackhand-ui: /opt/homebrew/Cellar/mpg123/1.33.4/lib/libmpg123.dylib
+blackhand-ui: /opt/homebrew/Cellar/mpg123/1.33.4/lib/libout123.dylib
 blackhand-ui: CMakeFiles/blackhand-ui.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking C executable blackhand-ui"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/blackhand-ui.dir/link.txt --verbose=$(VERBOSE)

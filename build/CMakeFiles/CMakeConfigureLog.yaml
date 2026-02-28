@@ -1931,3 +1931,200 @@ events:
         - "/Network/Library/Frameworks"
         - "/System/Library/Frameworks"
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:104 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/CheckCSourceCompiles.cmake:103 (cmake_check_source_compiles)"
+      - "/opt/homebrew/share/cmake/Modules/FindThreads.cmake:160 (check_c_source_compiles)"
+      - "/opt/homebrew/share/cmake/Modules/FindThreads.cmake:226 (_threads_check_libc)"
+      - "CMakeLists.txt:5 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ"
+      binary: "/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "-g"
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /opt/homebrew/bin/gmake -f Makefile cmTC_52d50/fast
+        gmake[1]: Entering directory '/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ'
+        /opt/homebrew/bin/gmake  -f CMakeFiles/cmTC_52d50.dir/build.make CMakeFiles/cmTC_52d50.dir/build
+        gmake[2]: Entering directory '/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ'
+        Building C object CMakeFiles/cmTC_52d50.dir/src.c.o
+        /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD  -g  -arch arm64 -MD -MT CMakeFiles/cmTC_52d50.dir/src.c.o -MF CMakeFiles/cmTC_52d50.dir/src.c.o.d -o CMakeFiles/cmTC_52d50.dir/src.c.o -c /Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ/src.c
+        Linking C executable cmTC_52d50
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_52d50.dir/link.txt --verbose=1
+        /usr/bin/cc -g  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_52d50.dir/src.c.o -o cmTC_52d50
+        gmake[2]: Leaving directory '/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ'
+        gmake[1]: Leaving directory '/Users/mrnoori/Desktop/blackhandUI/build/CMakeFiles/CMakeScratch/TryCompile-FAVuKZ'
+        
+      exitCode: 0
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:761 (find_library)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:811 (_pkg_find_libs)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:1149 (_pkg_recalculate)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:1166 (_pkg_check_modules_internal)"
+      - "CMakeLists.txt:7 (pkg_check_modules)"
+    mode: "library"
+    variable: "pkgcfg_lib_MPG123_mpg123"
+    description: "Path to a library."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "mpg123"
+    candidate_directories:
+      - "/opt/homebrew/Cellar/mpg123/1.33.4/lib/"
+    found: "/opt/homebrew/Cellar/mpg123/1.33.4/lib/libmpg123.dylib"
+    search_context:
+      ENV{PATH}:
+        - "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/ARM/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-build-cmake-1.43.0/resources/cube-cmake/darwin"
+        - "/Users/mrnoori/.vscode/extensions/vadimcn.vscode-lldb-1.12.1/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-core-1.1.0/resources/binaries/darwin/aarch64"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pmk/env/global/bin"
+        - "/Library/Apple/usr/bin"
+        - "/opt/homebrew/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-core-1.1.0/resources/binaries/darwin/aarch64"
+        - "/Users/mrnoori/.vscode/extensions/vadimcn.vscode-lldb-1.12.1/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-build-cmake-1.43.0/resources/cube-cmake/darwin"
+        - "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin"
+        - "/Applications/ARM/bin"
+        - "/Users/mrnoori/.lmstudio/bin"
+        - "/Users/mrnoori/.lmstudio/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_LIBRARY_PATH:
+        - "/usr/lib/X11"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/Network/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:761 (find_library)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:811 (_pkg_find_libs)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:1149 (_pkg_recalculate)"
+      - "/opt/homebrew/share/cmake/Modules/FindPkgConfig.cmake:1166 (_pkg_check_modules_internal)"
+      - "CMakeLists.txt:8 (pkg_check_modules)"
+    mode: "library"
+    variable: "pkgcfg_lib_OUT123_out123"
+    description: "Path to a library."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "out123"
+    candidate_directories:
+      - "/opt/homebrew/Cellar/mpg123/1.33.4/lib/"
+    found: "/opt/homebrew/Cellar/mpg123/1.33.4/lib/libout123.dylib"
+    search_context:
+      ENV{PATH}:
+        - "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/ARM/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-build-cmake-1.43.0/resources/cube-cmake/darwin"
+        - "/Users/mrnoori/.vscode/extensions/vadimcn.vscode-lldb-1.12.1/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-core-1.1.0/resources/binaries/darwin/aarch64"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pmk/env/global/bin"
+        - "/Library/Apple/usr/bin"
+        - "/opt/homebrew/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-core-1.1.0/resources/binaries/darwin/aarch64"
+        - "/Users/mrnoori/.vscode/extensions/vadimcn.vscode-lldb-1.12.1/bin"
+        - "/Users/mrnoori/.vscode/extensions/stmicroelectronics.stm32cube-ide-build-cmake-1.43.0/resources/cube-cmake/darwin"
+        - "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin"
+        - "/Applications/ARM/bin"
+        - "/Users/mrnoori/.lmstudio/bin"
+        - "/Users/mrnoori/.lmstudio/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_LIBRARY_PATH:
+        - "/usr/lib/X11"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/Network/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/Library/Frameworks"
+        - "/Library/Developer/CommandLineTools/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+...

@@ -85,6 +85,7 @@
  */
 #include "config.h"
 #include "services/theme_service.h"
+#include "services/mp3_service.h"
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -360,6 +361,14 @@ void screen_home_draw(struct ncplane *phone) {
         /* Draw the menu label, offset by 2 to leave room for cursor */
         ncplane_putstr_yx(phone, row, HOME_CONTENT_COL + 2, items[i].label);
     }
+
+    ncplane_set_fg_rgb(phone, theme_text_muted());
+    ncplane_set_bg_rgb(phone, theme_bg());
+    if (mp3_service_get_state() == PLAYING) {
+        ncplane_putstr_yx(phone, (int)rows - 2, 2, "[p] Pause audio");
+    } else if (mp3_service_get_state() == PAUSED) {
+        ncplane_putstr_yx(phone, (int)rows - 2, 2, "[p] Resume audio");
+    }
 }
 
 
@@ -466,6 +475,15 @@ screen_id screen_home_input(uint32_t key) {
              *   3. .target - the screen_id field of that item
              */
             return items[selected].target;
+
+        case 'p':
+        case 'P':
+            if (mp3_service_get_state() == PLAYING) {
+                mp3_service_pause();
+            } else if (mp3_service_get_state() == PAUSED) {
+                mp3_service_resume();
+            }
+            return SCREEN_HOME;
 
         /*
          * DEFAULT: Any other key does nothing

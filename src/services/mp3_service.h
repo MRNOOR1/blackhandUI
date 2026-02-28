@@ -29,6 +29,8 @@ typedef enum
 	PAUSED
 } playback_state;
 
+#define MP3_VIZ_BINS 20
+
 int mp3_service_init(const char *audio_root);
 void mp3_service_shutdown(void);
 size_t mp3_service_count(void);
@@ -40,5 +42,6 @@ void mp3_service_stop(void);
 playback_state mp3_service_get_state(void);
 int mp3_service_get_current_index(void);
 unsigned mp3_service_get_elapsed(void);
+size_t mp3_service_get_visualizer(unsigned char *out_levels, size_t max_levels);
 
 #endif
