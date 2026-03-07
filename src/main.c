@@ -201,6 +201,7 @@
 #include "services/theme_service.h"
 #include "services/notes_service.h"
 #include "services/mp3_service.h"
+#include "services/voice_memo_service.h"
 
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -329,6 +330,7 @@ int main(void) {
     theme_service_init();
     notes_service_init();
     mp3_service_init("./Music");
+    voice_memo_service_init();
 
     /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
@@ -396,7 +398,6 @@ int main(void) {
      * a value that doesn't exist in the enum.
      */
     screen_id current_screen = SCREEN_HOME;
-    screen_id previous_screen = (screen_id)-1;  /* force first-frame transition */
 
     /*
      * tick drives all animation.  Increments each frame.
@@ -422,8 +423,6 @@ int main(void) {
          *   if (previous == SCREEN_X) screen_x_destroy();
          *   if (current  == SCREEN_X) screen_x_init(phone);
          */
-        previous_screen = current_screen;
-
         /* RESOLVE SCREEN NAME
          * ────────────────────
          * Map the current screen enum to the label shown in the separator.
@@ -491,6 +490,7 @@ int main(void) {
          */
         draw_frame(phone, tick, screen_name);
         tick++;
+        voice_memo_service_tick();
 
         switch (current_screen) {
             case SCREEN_HOME:
@@ -576,6 +576,9 @@ int main(void) {
         struct timespec timeout = { .tv_sec = 0, .tv_nsec = 33000000L };
         uint32_t key = notcurses_get(nc, &timeout, &ni);
         if (key == 0) {
+            continue;
+        }
+        if (ni.evtype == NCTYPE_REPEAT || ni.evtype == NCTYPE_RELEASE) {
             continue;
         }
 
@@ -688,6 +691,7 @@ int main(void) {
     ncplane_destroy(phone);
     notcurses_stop(nc);
     mp3_service_shutdown();
+    voice_memo_service_shutdown();
     notes_service_shutdown();
     settings_service_shutdown();
     hardware_cleanup();

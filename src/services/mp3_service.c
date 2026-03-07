@@ -207,6 +207,8 @@ cleanup:
 }
 
 int mp3_service_init(const char *audio_root) {
+    if (!audio_root || audio_root[0] == '\0') return -1;
+
     library = malloc(sizeof(AudioFile) * INITIAL_AUDIO_CAPACITY);
     if (!library) return -1;
     capacity = INITIAL_AUDIO_CAPACITY;
@@ -220,10 +222,20 @@ int mp3_service_init(const char *audio_root) {
             capacity = 0;
             return -1;
         }
+    } else if (!S_ISDIR(st.st_mode)) {
+        free(library);
+        library = NULL;
+        capacity = 0;
+        return -1;
     }
 
     DIR *root_dir = opendir(audio_root);
-    if (!root_dir) return -1;
+    if (!root_dir) {
+        free(library);
+        library = NULL;
+        capacity = 0;
+        return -1;
+    }
 
     struct dirent *genre_entry;
     while ((genre_entry = readdir(root_dir)) != NULL) {

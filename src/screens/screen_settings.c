@@ -1,7 +1,6 @@
 
 #include <notcurses/notcurses.h>
 #include <stdint.h>
-#include "services/theme_service.h"
 #include "ui.h"
 #include "config.h"
 

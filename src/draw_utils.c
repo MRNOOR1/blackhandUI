@@ -146,9 +146,9 @@ void ghost_hline(struct ncplane *n, int row, int col,
  * ────────────────────────────────────────────────────────────────────────── */
  void ghost_fill_rect(struct ncplane *n,
                              int row, int col, int h, int w,
-                             char ch, uint32_t fg, uint32_t bg) {
+                              char ch, uint32_t fg, uint32_t bg) {
     ncplane_set_fg_rgb(n, fg);
-    ncplane_set_bg_rgb(n, theme_bg());
+    ncplane_set_bg_rgb(n, bg);
     for (int r = 0; r < h; r++) {
         for (int c = 0; c < w; c++) {
             ncplane_putchar_yx(n, row + r, col + c, ch);

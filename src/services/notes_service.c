@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <time.h>
 
 #define INITIAL_NOTES_CAPACITY 16
 #define MAX_LINE_LENGTH 256
@@ -21,7 +22,7 @@ static int ensure_capacity(void)
 	if (notes_count < notes_capacity)
 		return 0;
 
-	size_t new_capacity = notes_capacity * 2;
+	size_t new_capacity = (notes_capacity == 0) ? INITIAL_NOTES_CAPACITY : notes_capacity * 2;
 	Note **new_array = realloc(notes_index, new_capacity * sizeof(Note *));
 	if (!new_array)
 	{
@@ -49,7 +50,7 @@ void notes_service_init(void)
 	if (!notes_index)
 	{
 		fprintf(stderr, "Failed to allocate notes index\n");
-		exit(EXIT_FAILURE);
+		return;
 	}
 	notes_count = 0;
 	notes_capacity = INITIAL_NOTES_CAPACITY;
@@ -231,7 +232,7 @@ Note *notes_service_create(const char *title, const char *content)
 
 const Note *notes_service_get_note_by_filename(const char *filename)
 {
-	if (notes_count == 0)
+	if (!filename || notes_count == 0)
 		return NULL;
 	for (size_t i = 0; i < notes_count; i++)
 	{
@@ -244,7 +245,7 @@ const Note *notes_service_get_note_by_filename(const char *filename)
 
 int notes_service_delete_note(const Note *n)
 {
-	if (notes_count == 0)
+	if (!n || notes_count == 0)
 		return 1;
 	for (size_t i = 0; i < notes_count; i++)
 	{

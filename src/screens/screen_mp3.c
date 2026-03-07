@@ -16,6 +16,13 @@ typedef enum {
 static mp3_mode_t mode = MP3_MODE_LIBRARY;
 static int selected = 0;
 
+static int safe_trunc_index(int cols, int padding, int buf_size) {
+    int idx = cols - padding;
+    if (idx < 0) return 0;
+    if (idx >= buf_size) return buf_size - 1;
+    return idx;
+}
+
 static void draw_visualizer(struct ncplane *phone, int row, int col, int width) {
     if (width < 8) return;
 
@@ -74,7 +81,7 @@ static void draw_library(struct ncplane *phone, unsigned rows, unsigned cols) {
 
         char line[256];
         snprintf(line, sizeof(line), "%s - %s", track->author ? track->author : "Unknown", track->title ? track->title : "Unknown");
-        line[(int)cols - 6 > 0 ? (int)cols - 6 : 0] = '\0';
+        line[safe_trunc_index((int)cols, 6, (int)sizeof(line))] = '\0';
         ncplane_putstr_yx(phone, row, 4, line);
     }
 
@@ -112,8 +119,8 @@ static void draw_now_playing(struct ncplane *phone, unsigned rows, unsigned cols
     snprintf(line2, sizeof(line2), "Artist: %s", track->author ? track->author : "Unknown");
     snprintf(line3, sizeof(line3), "%s  %u sec", state_text, elapsed);
 
-    line1[(int)cols - 4 > 0 ? (int)cols - 4 : 0] = '\0';
-    line2[(int)cols - 4 > 0 ? (int)cols - 4 : 0] = '\0';
+    line1[safe_trunc_index((int)cols, 4, (int)sizeof(line1))] = '\0';
+    line2[safe_trunc_index((int)cols, 4, (int)sizeof(line2))] = '\0';
 
     ncplane_putstr_yx(phone, 6, 2, line1);
     ncplane_putstr_yx(phone, 7, 2, line2);

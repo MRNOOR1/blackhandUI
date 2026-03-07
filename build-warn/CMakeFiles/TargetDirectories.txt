@@ -1,0 +1,3 @@
+/Users/mrnoori/Desktop/blackhandUI/build-warn/CMakeFiles/blackhand-ui.dir
+/Users/mrnoori/Desktop/blackhandUI/build-warn/CMakeFiles/edit_cache.dir
+/Users/mrnoori/Desktop/blackhandUI/build-warn/CMakeFiles/rebuild_cache.dir

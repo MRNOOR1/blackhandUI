@@ -31,6 +31,13 @@ static notes_mode_t mode = NOTES_MODE_LIST;
 static int selected = 0;
 static int scroll_offset = 0;  /* for content scrolling in view mode */
 
+static int safe_trunc_index(int cols, int padding, int buf_size) {
+    int idx = cols - padding;
+    if (idx < 0) return 0;
+    if (idx >= buf_size) return buf_size - 1;
+    return idx;
+}
+
 /* ── Layout constants ─────────────────────────────────────────────────── */
 #define NOTES_START_ROW     3
 #define NOTES_COL           2
@@ -57,6 +64,11 @@ static void draw_list(struct ncplane *phone) {
     if (selected >= (int)count) selected = (int)count - 1;
 
     Note **notes = notes_service_list_all(NULL);
+    if (!notes) {
+        ghost_text(phone, NOTES_START_ROW, NOTES_COL,
+                   theme_text_muted(), "Notes unavailable");
+        return;
+    }
 
     /* How many rows available for note items */
     int max_visible = (int)rows - NOTES_START_ROW - NOTES_HINT_ROW_OFFSET;
@@ -75,19 +87,20 @@ static void draw_list(struct ncplane *phone) {
         ncplane_putstr_yx(phone, row, NOTES_COL, cursor);
 
         /* Truncate title to fit within border */
-        int title_max = (int)cols - NOTES_COL - 4;  /* 2 cursor + 2 border */
         char title_buf[128];
         if (n->title) {
             strncpy(title_buf, n->title, sizeof(title_buf) - 1);
             title_buf[sizeof(title_buf) - 1] = '\0';
-            if ((int)strlen(title_buf) > title_max && title_max > 3) {
-                title_buf[title_max - 3] = '.';
-                title_buf[title_max - 2] = '.';
-                title_buf[title_max - 1] = '.';
-                title_buf[title_max] = '\0';
+            int trunc = safe_trunc_index((int)cols, NOTES_COL + 4, (int)sizeof(title_buf));
+            if ((int)strlen(title_buf) > trunc && trunc > 3) {
+                title_buf[trunc - 3] = '.';
+                title_buf[trunc - 2] = '.';
+                title_buf[trunc - 1] = '.';
+                title_buf[trunc] = '\0';
             }
         } else {
             strncpy(title_buf, "Untitled", sizeof(title_buf));
+            title_buf[sizeof(title_buf) - 1] = '\0';
         }
 
         ncplane_putstr_yx(phone, row, NOTES_COL + 2, title_buf);
@@ -110,6 +123,10 @@ static void draw_view(struct ncplane *phone) {
     }
 
     Note **notes = notes_service_list_all(NULL);
+    if (!notes) {
+        mode = NOTES_MODE_LIST;
+        return;
+    }
     Note *n = notes[selected];
 
     /* Title */
