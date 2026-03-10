@@ -202,6 +202,9 @@
 #include "services/notes_service.h"
 #include "services/mp3_service.h"
 #include "services/voice_memo_service.h"
+#include "services/contacts_service.h"
+#include "services/alarm_service.h"
+#include "services/comm_service.h"
 
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -331,6 +334,9 @@ int main(void) {
     notes_service_init();
     mp3_service_init("./Music");
     voice_memo_service_init();
+    contact_service_init();
+    alarm_service_init();
+    comm_service_init();
 
     /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
@@ -458,6 +464,9 @@ int main(void) {
             case SCREEN_MP3:      screen_name = "MP3";      break;
             case SCREEN_VOICE_MEMO: screen_name = "VOICE";  break;
             case SCREEN_NOTES:    screen_name = "NOTES";    break;
+            case SCREEN_ALARM:    screen_name = "ALARM";    break;
+            case SCREEN_THEME:    screen_name = "THEME";    break;
+            case SCREEN_BLUETOOTH:screen_name = "BT";       break;
             default:              screen_name = "";           break;
         }
 
@@ -516,6 +525,15 @@ int main(void) {
                 break;
             case SCREEN_NOTES:
                 screen_notes_draw(phone);
+                break;
+            case SCREEN_ALARM:
+                screen_alarm_draw(phone);
+                break;
+            case SCREEN_THEME:
+                screen_theme_draw(phone);
+                break;
+            case SCREEN_BLUETOOTH:
+                screen_bluetooth_draw(phone);
                 break;
             /*
              * HOW TO ADD A NEW SCREEN DRAW:
@@ -596,10 +614,8 @@ int main(void) {
          * Here it exits the while(1) loop, falling through to cleanup.
          */
         if (key == NCKEY_RESIZE) { continue; }  /* redraw at new size */
-        if (key == 'q' || key == 'Q') { break; } /* quit */
-        if (key == 'h' || key == 'H') {
-            current_screen = SCREEN_HOME;
-            continue;
+        if (current_screen == SCREEN_HOME && (key == 'q' || key == 'Q')) {
+            break;
         }
 
         /* SCREEN-SPECIFIC INPUT ROUTING
@@ -662,6 +678,15 @@ int main(void) {
             case SCREEN_NOTES:
                 current_screen = screen_notes_input(key);
                 break;
+            case SCREEN_ALARM:
+                current_screen = screen_alarm_input(key);
+                break;
+            case SCREEN_THEME:
+                current_screen = screen_theme_input(key);
+                break;
+            case SCREEN_BLUETOOTH:
+                current_screen = screen_bluetooth_input(key);
+                break;
             default:
                 break;
         }
@@ -692,6 +717,9 @@ int main(void) {
     notcurses_stop(nc);
     mp3_service_shutdown();
     voice_memo_service_shutdown();
+    contact_service_shutdown();
+    alarm_service_shutdown();
+    comm_service_shutdown();
     notes_service_shutdown();
     settings_service_shutdown();
     hardware_cleanup();

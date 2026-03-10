@@ -20,10 +20,16 @@ add_executable(blackhand-ui
     src/screens/screen_mp3.c
     src/screens/screen_voice_memo.c
     src/screens/screen_notes.c
+    src/screens/screen_alarm.c
+    src/screens/screen_theme.c
+    src/screens/screen_bluetooth.c
     src/services/settings_service.c
+    src/services/contacts_service.c
+    src/services/comm_service.c
     src/services/mp3_service.c
     src/services/notes_service.c
     src/services/voice_memo_service.c
+    src/services/alarm_service.c
     src/services/theme_service.c
 )
 

@@ -1,6 +1,8 @@
 #include "draw_utils.h"
 #include "config.h"
 #include "services/theme_service.h"
+
+#include <string.h>
 /* ══════════════════════════════════════════════════════════════════════════
  *  SECTION 2: PRIMITIVE DRAWING HELPERS
  *
@@ -178,8 +180,52 @@ void ghost_hline(struct ncplane *n, int row, int col,
  *    ghost_label_value(p, 7, 2, VALUE_COL, "CARRIER", carrier_name);
  * ────────────────────────────────────────────────────────────────────────── */
 void ghost_label_value(struct ncplane *n,
-                                int row, int label_col, int value_col,
-                                const char *label, const char *value) {
+                                 int row, int label_col, int value_col,
+                                 const char *label, const char *value) {
     ghost_text(n, row, label_col, theme_text_muted(), label);   /* dim */
     ghost_text(n, row, value_col, theme_text_primary(), value); /* bright */
+}
+
+void ghost_softkeys(struct ncplane *n, const char *left_label, const char *right_label) {
+    unsigned rows, cols;
+    ncplane_dim_yx(n, &rows, &cols);
+    if (rows < 3 || cols < 6) return;
+
+    int row = (int)rows - FOOTER_ROW_OFFSET;
+    if (row < 1 || row >= (int)rows - 1) return;
+
+    ghost_set(n, theme_border());
+    for (int x = CONTENT_COL; x < (int)cols - CONTENT_COL; x++) {
+        ncplane_putstr_yx(n, row - 1, x, "-");
+    }
+
+    ghost_set(n, theme_text_muted());
+
+    if (left_label && left_label[0] != '\0') {
+        ncplane_putstr_yx(n, row, CONTENT_COL, left_label);
+    }
+
+    if (right_label && right_label[0] != '\0') {
+        int right_len = (int)strlen(right_label);
+        int right_col = (int)cols - 1 - CONTENT_COL - right_len;
+        if (right_col < CONTENT_COL) right_col = CONTENT_COL;
+        ncplane_putstr_yx(n, row, right_col, right_label);
+    }
+}
+
+void ghost_confirm_popup(struct ncplane *n, const char *question, int yes_selected) {
+    unsigned rows, cols;
+    ncplane_dim_yx(n, &rows, &cols);
+    int w = 30;
+    int h = 5;
+    int top = ((int)rows - h) / 2;
+    int left = ((int)cols - w) / 2;
+    if (top < 3) top = 3;
+    if (left < 2) left = 2;
+
+    ghost_fill_rect(n, top, left, h, w, ' ', theme_text_primary(), theme_bg());
+    ghost_text(n, top + 1, left + 2, theme_text_primary(), question ? question : "Are you sure?");
+    ghost_text(n, top + 3, left + 2, theme_text_muted(), yes_selected ? "  NO" : "> NO");
+    ghost_text(n, top + 3, left + 12, theme_text_muted(), yes_selected ? "> YES" : "  YES");
+    ghost_softkeys(n, "[NO]", "[YES]");
 }

@@ -56,6 +56,8 @@
  *   - NCKEY_* constants (special key codes like arrow keys)
  */
 #include <notcurses/notcurses.h>
+#include <time.h>
+#include <stdio.h>
 
 /*
  * <stdint.h> - Fixed-width Integer Types
@@ -84,8 +86,10 @@
  *   - MENU_CURSOR, MENU_CURSOR_BLANK (selection indicator)
  */
 #include "config.h"
+#include "draw_utils.h"
 #include "services/theme_service.h"
 #include "services/mp3_service.h"
+#include "services/settings_service.h"
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -188,12 +192,14 @@ typedef struct {
  *   4. Add the case to the switch in main.c
  */
 static const menu_item items[] = {
-    { "Calls",         SCREEN_CALLS      },
-    { "Messages",      SCREEN_MESSAGES   },
-    { "Settings",      SCREEN_SETTINGS   },
-    { "MP3 Player",    SCREEN_MP3        },
-    { "Voice Memos",   SCREEN_VOICE_MEMO },
-    { "Notes",         SCREEN_NOTES      },
+    { "CONTACTS",      SCREEN_CONTACTS   },
+    { "MESSAGES",      SCREEN_MESSAGES   },
+    { "CALLS",         SCREEN_CALLS      },
+    { "NOTES",         SCREEN_NOTES      },
+    { "VOICE MEMO",    SCREEN_VOICE_MEMO },
+    { "MUSIC",         SCREEN_MP3        },
+    { "ALARM",         SCREEN_ALARM      },
+    { "SETTINGS",      SCREEN_SETTINGS   },
 };
 
 /*
@@ -276,6 +282,22 @@ void screen_home_draw(struct ncplane *phone) {
         return;  /* Early return - don't draw anything else */
     }
 
+    if (settings_service_get_bool("hand_white")) {
+        time_t now = time(NULL);
+        struct tm tm_now;
+        char tbuf[16] = "00:00";
+        if (localtime_r(&now, &tm_now)) {
+            snprintf(tbuf, sizeof(tbuf), "%02d:%02d", tm_now.tm_hour, tm_now.tm_min);
+        }
+
+        ghost_text(phone, CONTENT_START_ROW + 2, CONTENT_COL, theme_text_muted(), "HAND WHITE MODE");
+        ghost_text(phone, CONTENT_START_ROW + 4, CONTENT_COL, theme_text_primary(), tbuf);
+        ghost_text(phone, CONTENT_START_ROW + 6, CONTENT_COL, theme_text_muted(), "LAT: 35.6895 N");
+        ghost_text(phone, CONTENT_START_ROW + 7, CONTENT_COL, theme_text_muted(), "LON: 51.3890 E");
+        ghost_softkeys(phone, "[Quit]", "[Config]");
+        return;
+    }
+
     /*
      * Loop through each menu item and draw it.
      *
@@ -292,6 +314,8 @@ void screen_home_draw(struct ncplane *phone) {
      *       printf("%d\n", i);  // Prints 0, 1, 2, ..., 9
      *   }
      */
+    ghost_text(phone, CONTENT_START_ROW, CONTENT_COL, theme_text_muted(), "MODE: READY");
+
     for (int i = 0; i < item_count; i++) {
         /*
          * Calculate which row to draw this item on.
@@ -304,7 +328,7 @@ void screen_home_draw(struct ncplane *phone) {
          * Item 2: row = 3 + (2 * 1) = 5
          * ... etc
          */
-        int row = HOME_CONTENT_START_ROW + (i * HOME_ROW_SPACING);
+        int row = HOME_CONTENT_START_ROW + 1 + (i * HOME_ROW_SPACING);
 
         /*
          * Stop if we would draw into the footer area.
@@ -362,13 +386,15 @@ void screen_home_draw(struct ncplane *phone) {
         ncplane_putstr_yx(phone, row, HOME_CONTENT_COL + 2, items[i].label);
     }
 
-    ncplane_set_fg_rgb(phone, theme_text_muted());
-    ncplane_set_bg_rgb(phone, theme_bg());
     if (mp3_service_get_state() == PLAYING) {
-        ncplane_putstr_yx(phone, (int)rows - 2, 2, "[p] Pause audio");
+        ghost_text(phone, (int)rows - 4, CONTENT_COL, theme_text_muted(), "STATUS: AUDIO PLAYING");
     } else if (mp3_service_get_state() == PAUSED) {
-        ncplane_putstr_yx(phone, (int)rows - 2, 2, "[p] Resume audio");
+        ghost_text(phone, (int)rows - 4, CONTENT_COL, theme_text_muted(), "STATUS: AUDIO PAUSED");
+    } else {
+        ghost_text(phone, (int)rows - 4, CONTENT_COL, theme_text_muted(), "STATUS: IDLE");
     }
+
+    ghost_softkeys(phone, "[Quit]", "[Open]");
 }
 
 
@@ -421,6 +447,11 @@ void screen_home_draw(struct ncplane *phone) {
  * from regular Unicode codepoints.
  */
 screen_id screen_home_input(uint32_t key) {
+    if (settings_service_get_bool("hand_white")) {
+        if (key == 'e' || key == 'E' || key == NCKEY_ENTER || key == '\n') return SCREEN_SETTINGS;
+        return SCREEN_HOME;
+    }
+
     /*
      * C CONCEPT: SWITCH STATEMENT
      * ---------------------------
@@ -468,6 +499,8 @@ screen_id screen_home_input(uint32_t key) {
          */
         case NCKEY_ENTER:
         case '\n':
+        case 'e':
+        case 'E':
             /*
              * items[selected].target accesses:
              *   1. items - our menu_item array
@@ -475,15 +508,6 @@ screen_id screen_home_input(uint32_t key) {
              *   3. .target - the screen_id field of that item
              */
             return items[selected].target;
-
-        case 'p':
-        case 'P':
-            if (mp3_service_get_state() == PLAYING) {
-                mp3_service_pause();
-            } else if (mp3_service_get_state() == PAUSED) {
-                mp3_service_resume();
-            }
-            return SCREEN_HOME;
 
         /*
          * DEFAULT: Any other key does nothing

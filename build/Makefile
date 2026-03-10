@@ -225,6 +225,54 @@ src/platform/hardware.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s
 .PHONY : src/platform/hardware.c.s
 
+src/screens/screen_alarm.o: src/screens/screen_alarm.c.o
+.PHONY : src/screens/screen_alarm.o
+
+# target to build an object file
+src/screens/screen_alarm.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.o
+.PHONY : src/screens/screen_alarm.c.o
+
+src/screens/screen_alarm.i: src/screens/screen_alarm.c.i
+.PHONY : src/screens/screen_alarm.i
+
+# target to preprocess a source file
+src/screens/screen_alarm.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.i
+.PHONY : src/screens/screen_alarm.c.i
+
+src/screens/screen_alarm.s: src/screens/screen_alarm.c.s
+.PHONY : src/screens/screen_alarm.s
+
+# target to generate assembly for a file
+src/screens/screen_alarm.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.s
+.PHONY : src/screens/screen_alarm.c.s
+
+src/screens/screen_bluetooth.o: src/screens/screen_bluetooth.c.o
+.PHONY : src/screens/screen_bluetooth.o
+
+# target to build an object file
+src/screens/screen_bluetooth.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_bluetooth.c.o
+.PHONY : src/screens/screen_bluetooth.c.o
+
+src/screens/screen_bluetooth.i: src/screens/screen_bluetooth.c.i
+.PHONY : src/screens/screen_bluetooth.i
+
+# target to preprocess a source file
+src/screens/screen_bluetooth.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_bluetooth.c.i
+.PHONY : src/screens/screen_bluetooth.c.i
+
+src/screens/screen_bluetooth.s: src/screens/screen_bluetooth.c.s
+.PHONY : src/screens/screen_bluetooth.s
+
+# target to generate assembly for a file
+src/screens/screen_bluetooth.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_bluetooth.c.s
+.PHONY : src/screens/screen_bluetooth.c.s
+
 src/screens/screen_calls.o: src/screens/screen_calls.c.o
 .PHONY : src/screens/screen_calls.o
 
@@ -393,6 +441,30 @@ src/screens/screen_settings.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.s
 .PHONY : src/screens/screen_settings.c.s
 
+src/screens/screen_theme.o: src/screens/screen_theme.c.o
+.PHONY : src/screens/screen_theme.o
+
+# target to build an object file
+src/screens/screen_theme.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_theme.c.o
+.PHONY : src/screens/screen_theme.c.o
+
+src/screens/screen_theme.i: src/screens/screen_theme.c.i
+.PHONY : src/screens/screen_theme.i
+
+# target to preprocess a source file
+src/screens/screen_theme.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_theme.c.i
+.PHONY : src/screens/screen_theme.c.i
+
+src/screens/screen_theme.s: src/screens/screen_theme.c.s
+.PHONY : src/screens/screen_theme.s
+
+# target to generate assembly for a file
+src/screens/screen_theme.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_theme.c.s
+.PHONY : src/screens/screen_theme.c.s
+
 src/screens/screen_voice_memo.o: src/screens/screen_voice_memo.c.o
 .PHONY : src/screens/screen_voice_memo.o
 
@@ -416,6 +488,78 @@ src/screens/screen_voice_memo.s: src/screens/screen_voice_memo.c.s
 src/screens/screen_voice_memo.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s
 .PHONY : src/screens/screen_voice_memo.c.s
+
+src/services/alarm_service.o: src/services/alarm_service.c.o
+.PHONY : src/services/alarm_service.o
+
+# target to build an object file
+src/services/alarm_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.o
+.PHONY : src/services/alarm_service.c.o
+
+src/services/alarm_service.i: src/services/alarm_service.c.i
+.PHONY : src/services/alarm_service.i
+
+# target to preprocess a source file
+src/services/alarm_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.i
+.PHONY : src/services/alarm_service.c.i
+
+src/services/alarm_service.s: src/services/alarm_service.c.s
+.PHONY : src/services/alarm_service.s
+
+# target to generate assembly for a file
+src/services/alarm_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.s
+.PHONY : src/services/alarm_service.c.s
+
+src/services/comm_service.o: src/services/comm_service.c.o
+.PHONY : src/services/comm_service.o
+
+# target to build an object file
+src/services/comm_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/comm_service.c.o
+.PHONY : src/services/comm_service.c.o
+
+src/services/comm_service.i: src/services/comm_service.c.i
+.PHONY : src/services/comm_service.i
+
+# target to preprocess a source file
+src/services/comm_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/comm_service.c.i
+.PHONY : src/services/comm_service.c.i
+
+src/services/comm_service.s: src/services/comm_service.c.s
+.PHONY : src/services/comm_service.s
+
+# target to generate assembly for a file
+src/services/comm_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/comm_service.c.s
+.PHONY : src/services/comm_service.c.s
+
+src/services/contacts_service.o: src/services/contacts_service.c.o
+.PHONY : src/services/contacts_service.o
+
+# target to build an object file
+src/services/contacts_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/contacts_service.c.o
+.PHONY : src/services/contacts_service.c.o
+
+src/services/contacts_service.i: src/services/contacts_service.c.i
+.PHONY : src/services/contacts_service.i
+
+# target to preprocess a source file
+src/services/contacts_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/contacts_service.c.i
+.PHONY : src/services/contacts_service.c.i
+
+src/services/contacts_service.s: src/services/contacts_service.c.s
+.PHONY : src/services/contacts_service.s
+
+# target to generate assembly for a file
+src/services/contacts_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/contacts_service.c.s
+.PHONY : src/services/contacts_service.c.s
 
 src/services/mp3_service.o: src/services/mp3_service.c.o
 .PHONY : src/services/mp3_service.o
@@ -558,6 +702,12 @@ help:
 	@echo "... src/platform/hardware.o"
 	@echo "... src/platform/hardware.i"
 	@echo "... src/platform/hardware.s"
+	@echo "... src/screens/screen_alarm.o"
+	@echo "... src/screens/screen_alarm.i"
+	@echo "... src/screens/screen_alarm.s"
+	@echo "... src/screens/screen_bluetooth.o"
+	@echo "... src/screens/screen_bluetooth.i"
+	@echo "... src/screens/screen_bluetooth.s"
 	@echo "... src/screens/screen_calls.o"
 	@echo "... src/screens/screen_calls.i"
 	@echo "... src/screens/screen_calls.s"
@@ -579,9 +729,21 @@ help:
 	@echo "... src/screens/screen_settings.o"
 	@echo "... src/screens/screen_settings.i"
 	@echo "... src/screens/screen_settings.s"
+	@echo "... src/screens/screen_theme.o"
+	@echo "... src/screens/screen_theme.i"
+	@echo "... src/screens/screen_theme.s"
 	@echo "... src/screens/screen_voice_memo.o"
 	@echo "... src/screens/screen_voice_memo.i"
 	@echo "... src/screens/screen_voice_memo.s"
+	@echo "... src/services/alarm_service.o"
+	@echo "... src/services/alarm_service.i"
+	@echo "... src/services/alarm_service.s"
+	@echo "... src/services/comm_service.o"
+	@echo "... src/services/comm_service.i"
+	@echo "... src/services/comm_service.s"
+	@echo "... src/services/contacts_service.o"
+	@echo "... src/services/contacts_service.i"
+	@echo "... src/services/contacts_service.s"
 	@echo "... src/services/mp3_service.o"
 	@echo "... src/services/mp3_service.i"
 	@echo "... src/services/mp3_service.s"

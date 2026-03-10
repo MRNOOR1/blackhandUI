@@ -135,7 +135,10 @@ typedef enum {
     SCREEN_CONTACTS,    /* Contact list screen (= 4) */
     SCREEN_MP3,         /* Music player screen (= 5) */
     SCREEN_VOICE_MEMO,  /* Voice recording screen (= 6) */
-    SCREEN_NOTES        /* Notes/text editor screen (= 7) */
+    SCREEN_NOTES,       /* Notes/text editor screen (= 7) */
+    SCREEN_ALARM,       /* Alarm screen (= 8) */
+    SCREEN_THEME,       /* Theme selection (= 9) */
+    SCREEN_BLUETOOTH    /* Bluetooth manager (= 10) */
 } screen_id;
 
 
@@ -216,6 +219,15 @@ screen_id screen_voice_memo_input(uint32_t key);
 
 void screen_notes_draw(struct ncplane *phone);
 screen_id screen_notes_input(uint32_t key);
+
+void screen_alarm_draw(struct ncplane *phone);
+screen_id screen_alarm_input(uint32_t key);
+
+void screen_theme_draw(struct ncplane *phone);
+screen_id screen_theme_input(uint32_t key);
+
+void screen_bluetooth_draw(struct ncplane *phone);
+screen_id screen_bluetooth_input(uint32_t key);
 
 /* ─── Screen Input Handlers ────────────────────────────────────────────── */
 

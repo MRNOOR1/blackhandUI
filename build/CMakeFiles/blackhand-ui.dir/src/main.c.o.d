@@ -197,4 +197,7 @@ CMakeFiles/blackhand-ui.dir/src/main.c.o: \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_max_align_t.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_offsetof.h \
   /Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.h \
-  /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.h
+  /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/contacts_service.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/alarm_service.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/services/comm_service.h

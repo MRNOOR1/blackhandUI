@@ -13,6 +13,7 @@ uint32_t theme_text_primary(void);
 uint32_t theme_text_muted(void);
 uint32_t theme_border(void);
 void theme_service_sync_from_settings(void);
+int theme_service_is_dark(void);
 
 
 #endif

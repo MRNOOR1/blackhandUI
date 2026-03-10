@@ -175,6 +175,7 @@ CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o: \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncseqs.h \
   /Users/mrnoori/Desktop/blackhandUI/src/config.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.h \
   /Users/mrnoori/Desktop/blackhandUI/src/ui.h \
   /Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.h \
   /Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.h \

@@ -47,6 +47,7 @@ int voice_memo_service_play_resume(void);
 int voice_memo_service_play_stop(void);
 
 int voice_memo_service_delete(const char *filename);
+int voice_memo_service_rename(const char *old_filename, const char *new_title);
 
 int voice_memo_service_tick(void);
 int voice_memo_service_elapsed_ms(void);

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "config.h"
 #include "platform/hardware.h"
@@ -87,27 +88,20 @@ void draw_battery(struct ncplane *phone, int percent,
         }
     }
 
-    /* Four glyphs, one per iteration, drawn individually for per-glyph colour control */
-    for (int i = 0; i < 4; i++) {
-        ghost_set(phone, i < segs ? theme_text_primary() : theme_text_muted());
-        ncplane_putstr_yx(phone, STATUS_ROW,
-                          STATUS_BATTERY_COL + i,
-                          i < segs ? "▰" : "▱");
-    }
+    char label[24];
+    static const char *bars[] = { "░░░░", "█░░░", "██░░", "███░", "████" };
 
-    /* Percentage label */
-    char label[16];
     if (charging) {
         ghost_set(phone, theme_text_primary());
-        snprintf(label, sizeof(label), "⚡%d%%", percent);
+        snprintf(label, sizeof(label), "BAT %s %3d%% CHG", bars[segs], percent);
     } else if (percent < 15) {
         ghost_set(phone, COL_GHOST_LOW);
-        snprintf(label, sizeof(label), " %d%%", percent);
+        snprintf(label, sizeof(label), "BAT %s %3d%% LOW", bars[segs], percent);
     } else {
         ghost_set(phone, theme_text_muted());
-        snprintf(label, sizeof(label), " %d%%", percent);
+        snprintf(label, sizeof(label), "BAT %s %3d%%", bars[segs], percent);
     }
-    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_PCT_COL, label);
+    ncplane_putstr_yx(phone, STATUS_ROW, STATUS_BATTERY_COL, label);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -153,36 +147,24 @@ void draw_signal(struct ncplane *phone, int bars,
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
 
-    int sig_col    = (int)cols - 6;
-    int prefix_col = (int)cols - 7;
+    int sig_col = (int)cols - 13;
 
-    if (sig_col < 1) return;   /* plane too narrow — bail silently */
+    if (sig_col < 1) return;
 
+    int level = bars;
+    if (level < 0) level = 0;
+    if (level > 4) level = 4;
+    static const char *sigbars[] = { "░░░░", "▓░░░", "▓▓░░", "▓▓▓░", "▓▓▓▓" };
+
+    char text[20];
     if (!connected) {
-        /*
-         * Pulse ✕ between two barely-different dark greys.
-         * The difference (0x242424 vs 0x383838) is intentionally subtle —
-         * just enough to read as "scanning", not alarming.
-         */
-        uint32_t x_color = ((tick % 8) < 4) ? 0x242424 : 0x383838;
-        ghost_set(phone, x_color);
-        ncplane_putstr_yx(phone, STATUS_ROW, prefix_col, "✕");
-
+        ghost_set(phone, ((tick % 8) < 4) ? theme_text_muted() : theme_border());
+        snprintf(text, sizeof(text), "SIG ░░░░ LOST");
+    } else {
         ghost_set(phone, theme_text_muted());
-        for (int i = 0; i < 4; i++)
-            ncplane_putstr_yx(phone, STATUS_ROW, sig_col + i, "○");
-        return;
+        snprintf(text, sizeof(text), "SIG %s", sigbars[level]);
     }
-
-    /* Erase prefix column — clears any leftover ✕ from disconnected state */
-    ghost_set(phone, theme_bg());
-    ncplane_putstr_yx(phone, STATUS_ROW, prefix_col, " ");
-
-    for (int i = 0; i < 4; i++) {
-        ghost_set(phone, i < bars ? theme_text_primary() : theme_text_muted());
-        ncplane_putstr_yx(phone, STATUS_ROW, sig_col + i,
-                          i < bars ? "●" : "○");
-    }
+    ncplane_putstr_yx(phone, STATUS_ROW, sig_col, text);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -204,6 +186,21 @@ void draw_status_bar(struct ncplane *phone, int tick) {
     cellular_status_t cell = hardware_get_cellular();
     draw_battery(phone, batt.percent,     batt.charging,  tick);
     draw_signal (phone, cell.signal_bars, cell.connected, tick);
+
+    unsigned rows, cols;
+    ncplane_dim_yx(phone, &rows, &cols);
+    (void)rows;
+
+    time_t now = time(NULL);
+    struct tm tm_now;
+    if (localtime_r(&now, &tm_now)) {
+        char clockbuf[8];
+        snprintf(clockbuf, sizeof(clockbuf), "%02d:%02d", tm_now.tm_hour, tm_now.tm_min);
+        int col = (int)cols - 20;
+        if (col < 20) col = 20;
+        ghost_set(phone, theme_text_primary());
+        ncplane_putstr_yx(phone, STATUS_ROW, col, clockbuf);
+    }
 }
 
 
@@ -281,6 +278,7 @@ void draw_status_bar(struct ncplane *phone, int tick) {
  * ────────────────────────────────────────────────────────────────────────── */
 void draw_frame(struct ncplane *phone, int tick,
                        const char *screen_name) {
+    (void)screen_name;
 
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
@@ -303,7 +301,7 @@ void draw_frame(struct ncplane *phone, int tick,
     uint64_t channels = 0;
     ncchannels_set_bg_rgb(&channels, theme_bg());
     ncchannels_set_fg_rgb(&channels, theme_border());
-    nccells_heavy_box(phone, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl);
+    nccells_light_box(phone, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl);
 
     ncplane_cursor_move_yx(phone, 0, 0);
     ncplane_box(phone, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols - 1, 0);
@@ -318,56 +316,12 @@ void draw_frame(struct ncplane *phone, int tick,
     /* ── Status bar ────────────────────────────────────────────────────── */
     draw_status_bar(phone, tick);
 
-    /* ── Centred screen-name separator ────────────────────────────────── */
-    /*
-     * CENTERING ALGORITHM
-     * ────────────────────
-     * inner      = cols - 2          ← interior columns (between T-junctions)
-     * name_len   = strlen(name)      ← byte count (= column count for ASCII)
-     * padded     = name_len + 2      ← name with one space on each side
-     * left_fill  = (inner-padded)/2  ← ━ cells left of the name
-     * right_fill = remainder         ← ━ cells right of the name
-     *
-     * Clamped to 0 so extremely long names don't produce negative loops.
-     *
-     * NOTE: strlen() counts BYTES not Unicode codepoints.  For ASCII screen
-     * names ("HOME", "SETTINGS") bytes = columns.  If you ever use a
-     * non-ASCII name you will need mbstowcs() or similar to count columns.
-     */
-    int inner      = (int)cols - 2;
-    int name_len   = (int)strlen(screen_name);
-    int padded     = name_len + 2;
-    int left_fill  = (inner - padded) / 2;
-    int right_fill = inner - padded - left_fill;
-    if (left_fill  < 0) left_fill  = 0;
-    if (right_fill < 0) right_fill = 0;
-
-    /* Left T-junction — transparent bg so it blends with terminal border */
+    /* ── Separator line (terminal-first, no duplicate heading) ────────── */
     ncplane_set_fg_rgb(phone, theme_border());
     ncplane_set_bg_rgb(phone, theme_bg());
-    ncplane_putstr_yx(phone, 2, 0, "┣");
-
-    /* Left ━ fill */
-    ncplane_set_fg_rgb(phone, theme_border());
-    ncplane_set_bg_rgb(phone, theme_bg());
-    for (int x = 0; x < left_fill; x++)
-        ncplane_putstr_yx(phone, 2, 1 + x, "━");
-
-    /* Space + name + space */
-    ncplane_putstr_yx(phone, 2, 1 + left_fill, " ");
-    ncplane_set_fg_rgb(phone, theme_text_muted());
-    ncplane_putstr_yx(phone, 2, 1 + left_fill + 1, screen_name);
-    ncplane_set_fg_rgb(phone, theme_border());
-    ncplane_putstr_yx(phone, 2, 1 + left_fill + 1 + name_len, " ");
-
-    /* Right ━ fill */
-    int right_start = 1 + left_fill + 1 + name_len + 1;
-    ncplane_set_fg_rgb(phone, theme_border());
-    for (int x = 0; x < right_fill; x++)
-        ncplane_putstr_yx(phone, 2, right_start + x, "━");
-
-    /* Right T-junction */
-    ncplane_set_fg_rgb(phone, theme_border());
-    ncplane_set_bg_rgb(phone, theme_bg());
-    ncplane_putstr_yx(phone, 2, (int)cols - 1, "┫");
+    ncplane_putstr_yx(phone, 2, 0, "├");
+    for (int x = 1; x < (int)cols - 1; x++) {
+        ncplane_putstr_yx(phone, 2, x, "─");
+    }
+    ncplane_putstr_yx(phone, 2, (int)cols - 1, "┤");
 }

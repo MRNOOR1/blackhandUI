@@ -65,16 +65,15 @@
 #ifndef BLACKHAND_CONFIG_H
 #define BLACKHAND_CONFIG_H
 
-
-/* 
+/*
 Nav bar
 */
 
-#define COL_GHOST_ON            0xE0E0E0
-#define COL_GHOST_OFF           0x1E1E1E
-#define COL_GHOST_PCT           0x2C2C2C
-#define COL_GHOST_LOW           0x7F1D1D
-#define STATUS_BATTERY_PCT_COL  (STATUS_BATTERY_COL + 5)
+#define COL_GHOST_ON 0xE0E0E0
+#define COL_GHOST_OFF 0x1E1E1E
+#define COL_GHOST_PCT 0x2C2C2C
+#define COL_GHOST_LOW 0x7F1D1D
+#define STATUS_BATTERY_PCT_COL (STATUS_BATTERY_COL + 5)
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PHONE DIMENSIONS
  * ═══════════════════════════════════════════════════════════════════════════
@@ -92,11 +91,10 @@ Nav bar
  */
 
 /* Width of the phone plane in terminal columns */
-#define PHONE_COLS          30
+#define PHONE_COLS 32
 
 /* Height of the phone plane in terminal rows */
-#define PHONE_ROWS          15
-
+#define PHONE_ROWS 18
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  COLOR PALETTE
@@ -138,7 +136,7 @@ Nav bar
  * Current: Very dark grey (almost black)
  * Try: 0x000000 (pure black), 0x1a1a2e (dark blue), 0x0d1117 (GitHub dark)
  */
-#define COL_BG              0x1a1a2e
+#define COL_BG 0x1a1a2e
 
 /* ─── Border / Frame ───────────────────────────────────────────────────── */
 
@@ -149,7 +147,7 @@ Nav bar
  * Current: Muted sage green
  * Try: 0x5c6370 (grey), 0x61afef (blue), 0x98c379 (green)
  */
-#define COL_BORDER          0xE0E0E0
+#define COL_BORDER 0xE0E0E0
 
 /*
  * COL_SEPARATOR - Internal Separator Lines
@@ -158,7 +156,7 @@ Nav bar
  * Current: Medium grey (subtle)
  * Try: 0x333333 (darker), 0x777777 (lighter)
  */
-#define COL_SEPARATOR       0xE0E0E0
+#define COL_SEPARATOR 0xE0E0E0
 
 /* ─── Status Bar (Battery & Signal) ────────────────────────────────────── */
 
@@ -168,7 +166,7 @@ Nav bar
  * Used for: Any non-colored text in the status bar
  * Current: Light grey
  */
-#define COL_STATUS_TEXT     0x888888
+#define COL_STATUS_TEXT 0x888888
 
 /*
  * Battery Colors - Change based on charge level
@@ -179,9 +177,9 @@ Nav bar
  *
  * The draw_battery() function in main.c uses these thresholds.
  */
-#define COL_BATTERY_GOOD    0x7ec850    /* Green - healthy */
-#define COL_BATTERY_MED     0xf0c040    /* Yellow/orange - warning */
-#define COL_BATTERY_LOW     0xe05040    /* Red - critical */
+#define COL_BATTERY_GOOD 0x7ec850 /* Green - healthy */
+#define COL_BATTERY_MED 0xf0c040  /* Yellow/orange - warning */
+#define COL_BATTERY_LOW 0xe05040  /* Red - critical */
 
 /*
  * Signal Colors
@@ -189,8 +187,8 @@ Nav bar
  * COL_SIGNAL_ON  - Bars that represent actual signal
  * COL_SIGNAL_OFF - Bars above the signal level (empty)
  */
-#define COL_SIGNAL_ON       0x7ec850    /* Green - has signal */
-#define COL_SIGNAL_OFF      0x555555    /* Grey - no signal */
+#define COL_SIGNAL_ON 0x7ec850  /* Green - has signal */
+#define COL_SIGNAL_OFF 0x555555 /* Grey - no signal */
 
 /* ─── Header ───────────────────────────────────────────────────────────── */
 
@@ -200,7 +198,7 @@ Nav bar
  * Used for: Title text, brand text in the header area
  * Current: Warm off-white
  */
-#define COL_HEADER_TEXT     0xd8dad3
+#define COL_HEADER_TEXT 0xd8dad3
 
 /* ─── Footer ───────────────────────────────────────────────────────────── */
 
@@ -210,7 +208,7 @@ Nav bar
  * Used for: "[q]Quit" and other footer hints
  * Current: Warm tan/beige
  */
-#define COL_FOOTER_TEXT     0xa5a58d
+#define COL_FOOTER_TEXT 0xa5a58d
 
 /* ─── Menu (Home Screen) ───────────────────────────────────────────────── */
 
@@ -220,7 +218,7 @@ Nav bar
  * Current: Soft pink/mauve
  * Try: 0xabb2bf (grey), 0xe5c07b (gold)
  */
-#define COL_MENU_NORMAL     0xc9ada7
+#define COL_MENU_NORMAL 0xc9ada7
 
 /*
  * COL_MENU_SELECTED - Currently Selected Menu Item
@@ -228,20 +226,20 @@ Nav bar
  * Current: Bright white (stands out from normal items)
  * Try: 0x61afef (blue), 0x98c379 (green), 0xe06c75 (red)
  */
-#define COL_MENU_SELECTED   0xffffff
+#define COL_MENU_SELECTED 0xffffff
 
 /* ─── Placeholder Screens ──────────────────────────────────────────────── */
 
 /*
  * Colors for unimplemented screens showing "Coming soon..."
  */
-#define COL_PLACEHOLDER     0x555555    /* "Coming soon..." text */
-#define COL_HINT            0xa5a58d    /* "[h] go Home" hint */
+#define COL_PLACEHOLDER 0x555555 /* "Coming soon..." text */
+#define COL_HINT 0xa5a58d        /* "[h] go Home" hint */
 
 /* ─── Settings Screen ──────────────────────────────────────────────────── */
 
-#define COL_SETTINGS_HEADER 0xf2e9e4    /* "Settings" heading */
-#define COL_SETTINGS_TEXT   0xc9ada7    /* Setting item text */
+#define COL_SETTINGS_HEADER 0xf2e9e4 /* "Settings" heading */
+#define COL_SETTINGS_TEXT 0xc9ada7   /* Setting item text */
 
 /* ─── Dev Mode Label ───────────────────────────────────────────────────── */
 
@@ -251,8 +249,7 @@ Nav bar
  * Used for: "[ Dev — 50x15 phone screen ]" text outside the phone
  * Current: Very dim grey (barely visible)
  */
-#define COL_DEV_LABEL       0x444444
-
+#define COL_DEV_LABEL 0x444444
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  LAYOUT CONSTANTS
@@ -275,8 +272,8 @@ Nav bar
  *
  * If the plane is smaller than this, we skip drawing to avoid garbled output.
  */
-#define FRAME_MIN_ROWS      3
-#define FRAME_MIN_COLS      10
+#define FRAME_MIN_ROWS 3
+#define FRAME_MIN_COLS 10
 
 /* ─── Status Bar Layout ────────────────────────────────────────────────── */
 
@@ -286,7 +283,7 @@ Nav bar
  * Row 0 is the top border, so row 1 is the first interior row.
  * The status bar is drawn here, with a separator line at row 2.
  */
-#define STATUS_ROW          1
+#define STATUS_ROW 1
 
 /*
  * STATUS_BATTERY_COL - Column where battery icon starts
@@ -295,7 +292,7 @@ Nav bar
  * Battery is on the left (col 2, leaving room for border).
  * Signal is right-anchored dynamically in draw_signal() (cols - 6).
  */
-#define STATUS_BATTERY_COL  2
+#define STATUS_BATTERY_COL 2
 
 /* ─── Home Screen Layout ───────────────────────────────────────────────── */
 
@@ -307,14 +304,14 @@ Nav bar
  * Row 2 = separator
  * Row 3 = first menu item (START_ROW = 3)
  */
-#define HOME_CONTENT_START_ROW  3
+#define HOME_CONTENT_START_ROW 3
 
 /*
  * HOME_CONTENT_COL - Left column for menu items
  *
  * Column 0 is the border, so content starts at column 2.
  */
-#define HOME_CONTENT_COL        2
+#define HOME_CONTENT_COL 2
 
 /*
  * HOME_ROW_SPACING - Rows between menu items
@@ -322,24 +319,29 @@ Nav bar
  * 1 = items on consecutive rows (dense)
  * 2 = one empty row between items (spacious)
  */
-#define HOME_ROW_SPACING        1
+#define HOME_ROW_SPACING 1
 
 /*
  * HOME_MIN_* - Minimum size to draw the menu
  *
  * Below this, we show "Too small" message instead.
  */
-#define HOME_MIN_ROWS           6
-#define HOME_MIN_COLS           20
+#define HOME_MIN_ROWS 6
+#define HOME_MIN_COLS 20
 
 /* ─── Settings Screen Layout ───────────────────────────────────────────── */
 
-#define SETTINGS_HEADER_ROW     3   /* "Settings" heading row */
-#define SETTINGS_CONTENT_COL    2   /* Left column for content */
-#define SETTINGS_FIRST_ROW      5   /* First setting item row */
-#define SETTINGS_MIN_ROWS       6
-#define SETTINGS_MIN_COLS       20
+#define SETTINGS_HEADER_ROW 3  /* "Settings" heading row */
+#define SETTINGS_CONTENT_COL 3 /* Left column for content */
+#define SETTINGS_FIRST_ROW 5   /* First setting item row */
+#define SETTINGS_MIN_ROWS 6
+#define SETTINGS_MIN_COLS 20
 
+/* ─── Unified Layout Constants ─────────────────────────────────────────── */
+#define CONTENT_START_ROW 3 /* first row below separator */
+#define CONTENT_COL 3       /* left margin for content */
+#define FOOTER_ROW_OFFSET 2 /* footer is rows - this */
+#define INNER_WIDTH(cols) ((int)(cols) - 2 * CONTENT_COL)
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  TEXT LABELS
@@ -364,34 +366,33 @@ Nav bar
 /*
  * TEXT_BRAND - App name/logo in the header
  */
-#define TEXT_BRAND           " BH "
+#define TEXT_BRAND " BH-OPS "
 
 /*
  * TEXT_FOOTER - Help hint in the footer
  */
-#define TEXT_FOOTER          " [q]Quit "
+#define TEXT_FOOTER " [q]Quit "
 
 /*
  * TEXT_DEV_LABEL - Development mode indicator (outside phone)
  */
-#define TEXT_DEV_LABEL       "[ Dev — 50x15 phone screen ]"
+#define TEXT_DEV_LABEL "[ Dev - compact ops layout ]"
 
 /*
  * TEXT_COMING_SOON - Placeholder for unimplemented screens
  */
-#define TEXT_COMING_SOON     "Coming soon..."
+#define TEXT_COMING_SOON "Coming soon..."
 
 /*
  * TEXT_GO_HOME - Hint for returning to home screen
  */
-#define TEXT_GO_HOME         "[h] go Home"
+#define TEXT_GO_HOME "[h] go Home"
 
 /*
  * TEXT_TOO_SMALL - Error when terminal is too small
  */
-#define TEXT_TOO_SMALL       "Too small"
+#define TEXT_TOO_SMALL "Too small"
 #define TEXT_SCREEN_TOO_SMALL "Screen too small"
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  MENU CURSOR
@@ -412,7 +413,7 @@ Nav bar
  *   "● "        - Bullet point (U+25CF)
  *   "\u25b6 "   - Larger triangle (U+25B6)
  */
-#define MENU_CURSOR          "\u25b8 "  /* ▸ followed by space */
+#define MENU_CURSOR "▶ "
 
 /*
  * MENU_CURSOR_BLANK - Spaces to align unselected items
@@ -420,6 +421,6 @@ Nav bar
  * Must be the same visual width as MENU_CURSOR.
  * Two spaces = same width as "▸ "
  */
-#define MENU_CURSOR_BLANK    "  "
+#define MENU_CURSOR_BLANK "  "
 
 #endif /* BLACKHAND_CONFIG_H */

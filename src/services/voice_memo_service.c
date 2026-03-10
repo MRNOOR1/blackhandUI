@@ -1,14 +1,20 @@
 #include "voice_memo_service.h"
 
 #include <dirent.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <stdint.h>
+#include <unistd.h>
 
 #define INITIAL_MEMO_CAPACITY 16
 #define TICK_STEP_MS 33
+#define WAV_SAMPLE_RATE 16000
+#define WAV_CHANNELS 1
+#define WAV_BITS_PER_SAMPLE 16
 
 static VoiceMemo **memos_index = NULL;
 static size_t memos_count = 0;
@@ -53,24 +59,128 @@ static char *make_timestamp_filename(void)
 	char name[64];
 	strftime(name, sizeof(name), "memo_%Y%m%d_%H%M%S", &tmv);
 	char final_name[80];
-	snprintf(final_name, sizeof(final_name), "%s_%u.vmemo", name, memo_serial++);
+	snprintf(final_name, sizeof(final_name), "%s_%u.wav", name, memo_serial++);
 	return strdup(final_name);
 }
 
-static int write_memo_file(const VoiceMemo *memo)
-{
-	if (!memo || !memo->filename)
-		return -1;
+static void write_u16le(FILE *f, uint16_t v) {
+    unsigned char b[2] = { (unsigned char)(v & 0xFF), (unsigned char)((v >> 8) & 0xFF) };
+    fwrite(b, 1, 2, f);
+}
 
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/%s", VOICE_MEMO_PATH, memo->filename);
-	FILE *f = fopen(path, "w");
-	if (!f)
-		return -1;
+static void write_u32le(FILE *f, uint32_t v) {
+    unsigned char b[4] = {
+        (unsigned char)(v & 0xFF),
+        (unsigned char)((v >> 8) & 0xFF),
+        (unsigned char)((v >> 16) & 0xFF),
+        (unsigned char)((v >> 24) & 0xFF)
+    };
+    fwrite(b, 1, 4, f);
+}
 
-	fprintf(f, "duration_ms=%d\n", memo->duration_ms);
-	fclose(f);
-	return 0;
+static int write_silence_wav(const char *path, int duration_ms) {
+    if (!path || duration_ms < 0) return -1;
+
+    FILE *f = fopen(path, "wb");
+    if (!f) return -1;
+
+    const uint16_t channels = WAV_CHANNELS;
+    const uint32_t sample_rate = WAV_SAMPLE_RATE;
+    const uint16_t bits_per_sample = WAV_BITS_PER_SAMPLE;
+    const uint16_t block_align = (uint16_t)(channels * (bits_per_sample / 8));
+    const uint32_t byte_rate = sample_rate * block_align;
+
+    uint32_t frames = (uint32_t)(((int64_t)duration_ms * sample_rate) / 1000);
+    uint32_t data_bytes = frames * block_align;
+    uint32_t riff_size = 36 + data_bytes;
+
+    fwrite("RIFF", 1, 4, f);
+    write_u32le(f, riff_size);
+    fwrite("WAVE", 1, 4, f);
+
+    fwrite("fmt ", 1, 4, f);
+    write_u32le(f, 16);
+    write_u16le(f, 1);
+    write_u16le(f, channels);
+    write_u32le(f, sample_rate);
+    write_u32le(f, byte_rate);
+    write_u16le(f, block_align);
+    write_u16le(f, bits_per_sample);
+
+    fwrite("data", 1, 4, f);
+    write_u32le(f, data_bytes);
+
+    if (data_bytes > 0) {
+        unsigned char zero[1024] = {0};
+        uint32_t remaining = data_bytes;
+        while (remaining > 0) {
+            uint32_t chunk = remaining > sizeof(zero) ? (uint32_t)sizeof(zero) : remaining;
+            fwrite(zero, 1, chunk, f);
+            remaining -= chunk;
+        }
+    }
+
+    fclose(f);
+    return 0;
+}
+
+static int read_wav_duration_ms(const char *path) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return 0;
+
+    unsigned char hdr[44];
+    if (fread(hdr, 1, sizeof(hdr), f) != sizeof(hdr)) {
+        fclose(f);
+        return 0;
+    }
+    fclose(f);
+
+    if (memcmp(hdr + 0, "RIFF", 4) != 0 || memcmp(hdr + 8, "WAVE", 4) != 0) {
+        return 0;
+    }
+
+    uint32_t byte_rate = (uint32_t)hdr[28] |
+                         ((uint32_t)hdr[29] << 8) |
+                         ((uint32_t)hdr[30] << 16) |
+                         ((uint32_t)hdr[31] << 24);
+
+    uint32_t data_bytes = (uint32_t)hdr[40] |
+                          ((uint32_t)hdr[41] << 8) |
+                          ((uint32_t)hdr[42] << 16) |
+                          ((uint32_t)hdr[43] << 24);
+
+    if (byte_rate == 0) return 0;
+    return (int)((data_bytes * 1000U) / byte_rate);
+}
+
+static int make_filename_from_title(const char *title, char *out, size_t out_size) {
+    if (!title || !out || out_size < 8) return -1;
+
+    size_t j = 0;
+    int last_underscore = 0;
+    for (size_t i = 0; title[i] != '\0' && j + 5 < out_size; i++) {
+        unsigned char ch = (unsigned char)title[i];
+        if (isalnum(ch)) {
+            out[j++] = (char)tolower(ch);
+            last_underscore = 0;
+        } else if (ch == ' ' || ch == '-' || ch == '_') {
+            if (!last_underscore && j > 0) {
+                out[j++] = '_';
+                last_underscore = 1;
+            }
+        }
+    }
+
+    while (j > 0 && out[j - 1] == '_') j--;
+    if (j == 0) return -1;
+
+    out[j] = '\0';
+    strncat(out, ".wav", out_size - strlen(out) - 1);
+    return 0;
+}
+
+static int path_exists(const char *p) {
+    return access(p, F_OK) == 0;
 }
 
 void voice_memo_service_init(void)
@@ -114,7 +224,7 @@ void voice_memo_service_init(void)
 		if (entry->d_name[0] == '.')
 			continue;
 		const char *ext = strrchr(entry->d_name, '.');
-		if (!ext || strcmp(ext, ".vmemo") != 0)
+		if (!ext || strcmp(ext, ".wav") != 0)
 			continue;
 
 		if (ensure_capacity() != 0)
@@ -122,30 +232,11 @@ void voice_memo_service_init(void)
 
 		char path[1024];
 		snprintf(path, sizeof(path), "%s/%s", VOICE_MEMO_PATH, entry->d_name);
-		FILE *f = fopen(path, "r");
-		if (!f)
-			continue;
-
 		VoiceMemo *memo = malloc(sizeof(VoiceMemo));
-		if (!memo)
-		{
-			fclose(f);
-			continue;
-		}
+		if (!memo) continue;
 
 		memo->filename = strdup(entry->d_name);
-		memo->duration_ms = 0;
-
-		char line[128];
-		if (fgets(line, sizeof(line), f))
-		{
-			int d = 0;
-			if (sscanf(line, "duration_ms=%d", &d) == 1)
-			{
-				memo->duration_ms = d;
-			}
-		}
-		fclose(f);
+		memo->duration_ms = read_wav_duration_ms(path);
 
 		if (!memo->filename)
 		{
@@ -219,7 +310,9 @@ int voice_memo_service_record_stop(const char *title_optional)
 		return -1;
 	}
 
-	if (write_memo_file(memo) != 0)
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%s", VOICE_MEMO_PATH, memo->filename);
+	if (write_silence_wav(path, memo->duration_ms) != 0)
 	{
 		free(memo->filename);
 		free(memo);
@@ -307,6 +400,57 @@ int voice_memo_service_delete(const char *filename)
 	}
 
 	return -1;
+}
+
+int voice_memo_service_rename(const char *old_filename, const char *new_title)
+{
+    if (!old_filename || !new_title) return -1;
+
+    VoiceMemo *target = NULL;
+    for (size_t i = 0; i < memos_count; i++) {
+        if (strcmp(memos_index[i]->filename, old_filename) == 0) {
+            target = memos_index[i];
+            break;
+        }
+    }
+    if (!target) return -1;
+
+    char base_name[128] = {0};
+    if (make_filename_from_title(new_title, base_name, sizeof(base_name)) != 0) {
+        return -1;
+    }
+
+    char final_name[160] = {0};
+    char old_path[1024];
+    char new_path[1024];
+
+    int suffix = 0;
+    while (1) {
+        if (suffix == 0) {
+            snprintf(final_name, sizeof(final_name), "%s", base_name);
+        } else {
+            const char *dot = strrchr(base_name, '.');
+            if (!dot) return -1;
+            int stem_len = (int)(dot - base_name);
+            if (stem_len < 1) return -1;
+            snprintf(final_name, sizeof(final_name), "%.*s_%d.wav", stem_len, base_name, suffix);
+        }
+
+        snprintf(old_path, sizeof(old_path), "%s/%s", VOICE_MEMO_PATH, old_filename);
+        snprintf(new_path, sizeof(new_path), "%s/%s", VOICE_MEMO_PATH, final_name);
+
+        if (!path_exists(new_path) || strcmp(old_filename, final_name) == 0) break;
+        suffix++;
+    }
+
+    if (strcmp(old_filename, final_name) == 0) return 0;
+    if (rename(old_path, new_path) != 0) return -1;
+
+    char *new_copy = strdup(final_name);
+    if (!new_copy) return -1;
+    free(target->filename);
+    target->filename = new_copy;
+    return 0;
 }
 
 int voice_memo_service_tick(void)
