@@ -11,6 +11,7 @@ add_executable(blackhand-ui
     src/main.c
     src/draw_utils.c
     src/frame_renderer.c
+    src/keypad_renderer.c
     src/screens/screen_home.c
     src/screens/screen_settings.c
     src/platform/hardware.c

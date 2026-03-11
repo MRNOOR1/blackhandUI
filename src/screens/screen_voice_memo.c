@@ -39,55 +39,6 @@ static void format_time_ms(int ms, char *buf, size_t buf_size) {
     snprintf(buf, buf_size, "%02d:%02d", min, sec);
 }
 
-/* ── Animated waveform for recording ───────────────────────────────────── */
-static void draw_recording_wave(struct ncplane *phone, int row, int col,
-                                 int width, int tick) {
-    static const char *wave_chars[] = {
-        "\u2581", "\u2582", "\u2583", "\u2584",
-        "\u2585", "\u2586", "\u2587", "\u2588"
-    };
-
-    uint32_t fg = ((tick / 2) % 2 == 0) ? theme_border() : theme_text_primary();
-
-    for (int i = 0; i < width; i++) {
-        /* simulate random-ish waveform using tick + position */
-        int wave = ((tick * 7 + i * 13 + i * i) % 16);
-        int idx = wave / 2;
-        if (idx > 7) idx = 7;
-        if (idx < 0) idx = 0;
-
-        ncplane_set_fg_rgb(phone, fg);
-        ncplane_set_bg_rgb(phone, theme_bg());
-        ncplane_putstr_yx(phone, row, col + i, wave_chars[idx]);
-    }
-}
-
-/* ── Animated playback waveform ────────────────────────────────────────── */
-static void draw_playback_wave(struct ncplane *phone, int row, int col,
-                                int width, int tick, int total_ms, int elapsed_ms) {
-    if (width <= 0) return;
-
-    float progress = 0.0f;
-    if (total_ms > 0) progress = (float)elapsed_ms / (float)total_ms;
-    if (progress > 1.0f) progress = 1.0f;
-    int fill = (int)(progress * (float)width);
-
-    uint32_t played_col = theme_border();
-    uint32_t remain_col = theme_text_muted();
-
-    static const char *bars[] = { "\u2581", "\u2582", "\u2583", "\u2584",
-                                  "\u2585", "\u2584", "\u2583", "\u2582" };
-
-    for (int i = 0; i < width; i++) {
-        int pattern = ((i * 5 + tick) % 8);
-        if (pattern < 0) pattern = 0;
-
-        ncplane_set_fg_rgb(phone, (i < fill) ? played_col : remain_col);
-        ncplane_set_bg_rgb(phone, theme_bg());
-        ncplane_putstr_yx(phone, row, col + i, bars[pattern % 8]);
-    }
-}
-
 /* ── Recording screen ──────────────────────────────────────────────────── */
 static void draw_recording(struct ncplane *phone, unsigned rows, unsigned cols) {
     int footer = (int)rows - FOOTER_ROW_OFFSET;

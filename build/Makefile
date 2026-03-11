@@ -177,6 +177,30 @@ src/frame_renderer.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.s
 .PHONY : src/frame_renderer.c.s
 
+src/keypad_renderer.o: src/keypad_renderer.c.o
+.PHONY : src/keypad_renderer.o
+
+# target to build an object file
+src/keypad_renderer.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.o
+.PHONY : src/keypad_renderer.c.o
+
+src/keypad_renderer.i: src/keypad_renderer.c.i
+.PHONY : src/keypad_renderer.i
+
+# target to preprocess a source file
+src/keypad_renderer.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.i
+.PHONY : src/keypad_renderer.c.i
+
+src/keypad_renderer.s: src/keypad_renderer.c.s
+.PHONY : src/keypad_renderer.s
+
+# target to generate assembly for a file
+src/keypad_renderer.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.s
+.PHONY : src/keypad_renderer.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -696,6 +720,9 @@ help:
 	@echo "... src/frame_renderer.o"
 	@echo "... src/frame_renderer.i"
 	@echo "... src/frame_renderer.s"
+	@echo "... src/keypad_renderer.o"
+	@echo "... src/keypad_renderer.i"
+	@echo "... src/keypad_renderer.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

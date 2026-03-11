@@ -198,6 +198,7 @@
 #include "services/settings_service.h"
 #include "frame_renderer.h"
 #include "draw_utils.h"
+#include "keypad_renderer.h"
 #include "services/theme_service.h"
 #include "services/notes_service.h"
 #include "services/mp3_service.h"
@@ -252,20 +253,17 @@
  *  initializers because adding a new field to the struct later won't
  *  silently shift your values.
  * ────────────────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  create_phone_plane()  —  Create the full phone plane (screen + keypad)
+ *
+ *  The plane covers the full PHONE_ROWS height.  The top PHONE_SCREEN_ROWS
+ *  hold the display (status bar, content, softkey footer).  The bottom
+ *  KEYPAD_ROWS hold the visual on-screen keypad.
+ * ────────────────────────────────────────────────────────────────────────── */
 static struct ncplane *create_phone_plane(struct ncplane *std) {
     unsigned term_rows, term_cols;
     ncplane_dim_yx(std, &term_rows, &term_cols);
 
-    /*
-     * CENTERING FORMULA: start = (total - object) / 2
-     *
-     * Integer division truncates toward zero, so on odd remainders the
-     * object sits one cell toward top-left of perfect centre — invisible.
-     *
-     * We use signed int because subtraction could go negative if the
-     * terminal is smaller than PHONE_ROWS / PHONE_COLS.  Clamping to 0
-     * places the phone at the top-left in that case rather than crashing.
-     */
     int start_y = ((int)term_rows - PHONE_ROWS) / 2;
     int start_x = ((int)term_cols - PHONE_COLS) / 2;
     if (start_y < 0) start_y = 0;
@@ -279,14 +277,26 @@ static struct ncplane *create_phone_plane(struct ncplane *std) {
         .name = "phone",
     };
 
-    /*
-     * ncplane_create(parent, options)
-     * ────────────────────────────────
-     * Allocates a new plane as a child of parent.
-     * Returns NULL if allocation fails.
-     * The returned pointer is the handle for all subsequent drawing.
-     */
     return ncplane_create(std, &opts);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  create_screen_plane()  —  Create the screen sub-plane (child of phone)
+ *
+ *  This child plane occupies only the top PHONE_SCREEN_ROWS of the phone
+ *  plane.  All screen draw/input functions receive this plane so they see
+ *  only the screen area (PHONE_SCREEN_ROWS × PHONE_COLS) and never draw into
+ *  the keypad.
+ * ────────────────────────────────────────────────────────────────────────── */
+static struct ncplane *create_screen_plane(struct ncplane *phone) {
+    struct ncplane_options opts = {
+        .y    = 0,
+        .x    = 0,
+        .rows = PHONE_SCREEN_ROWS,
+        .cols = PHONE_COLS,
+        .name = "screen",
+    };
+    return ncplane_create(phone, &opts);
 }
 
 
@@ -389,9 +399,23 @@ int main(void) {
     ncplane_set_fg_rgb(std, COL_DEV_LABEL);
     ncplane_putstr_yx(std, 0, 2, TEXT_DEV_LABEL);
 
-    /* ── Phone plane ────────────────────────────────────────────────────── */
+    /* ── Phone plane (full height: screen + keypad) ──────────────────── */
     struct ncplane *phone = create_phone_plane(std);
     if (!phone) {
+        notcurses_stop(nc);
+        return 1;
+    }
+
+    /* ── Screen plane (child of phone, covers only the screen area) ─── */
+    /*
+     * All screen draw/input functions receive 'screen' instead of 'phone'.
+     * They see a PHONE_SCREEN_ROWS × PHONE_COLS canvas — exactly the
+     * display area above the keypad.  The keypad is drawn directly on the
+     * parent 'phone' plane below the screen area.
+     */
+    struct ncplane *screen = create_screen_plane(phone);
+    if (!screen) {
+        ncplane_destroy(phone);
         notcurses_stop(nc);
         return 1;
     }
@@ -412,48 +436,17 @@ int main(void) {
      */
     int tick = 0;
 
-    /* ── Event loop ─────────────────────────────────────────────────────── */
     /*
-     * C CONCEPT: while (1)  —  infinite loop
-     * ────────────────────────────────────────
-     * 1 is always truthy in C, so this runs forever until a 'break' or
-     * 'return' statement exits it.
+     * last_key tracks the most recently pressed key for keypad highlight
+     * feedback.  Reset to 0 on each timeout (no key pressed) so the
+     * highlight only flashes for one frame.
      */
+    uint32_t last_key = 0;
+
+    /* ── Event loop ─────────────────────────────────────────────────────── */
     while (1) {
 
-        /* ── SCREEN TRANSITION ─────────────────────────────────────────── */
-        /*
-         * Track screen changes.  Currently used only for the screen_name
-         * label in the separator.  When a screen needs init/cleanup,
-         * add it here:
-         *   if (previous == SCREEN_X) screen_x_destroy();
-         *   if (current  == SCREEN_X) screen_x_init(phone);
-         */
-        /* RESOLVE SCREEN NAME
-         * ────────────────────
-         * Map the current screen enum to the label shown in the separator.
-         *
-         * C CONCEPT: switch / case
-         * ─────────────────────────
-         * switch (expr) compares expr to each 'case' value and jumps to
-         * the first match.  Execution runs until 'break' exits the switch.
-         * Without 'break', execution falls through into the next case
-         * (sometimes intentional, almost always a bug).
-         * 'default' handles any value not matched by an explicit case —
-         * always include it as a safety net.
-         *
-         * The compiler can generate a jump table for switch, making it O(1)
-         * regardless of the number of cases.  An if/else chain is O(n).
-         *
-         * C CONCEPT: const char *
-         * ────────────────────────
-         * screen_name is a pointer to a string literal.  String literals
-         * live in read-only memory — you can read them, never modify them.
-         * 'const' enforces this at compile time.
-         *
-         * HOW TO ADD A NEW SCREEN NAME:
-         *   case SCREEN_CALLS:   screen_name = "CALLS";   break;
-         */
+        /* ── RESOLVE SCREEN NAME ───────────────────────────────────────── */
         const char *screen_name;
         switch (current_screen) {
             case SCREEN_HOME:     screen_name = "HOME";     break;
@@ -472,246 +465,87 @@ int main(void) {
 
         /* ── DRAW PHASE ──────────────────────────────────────────────────── */
         /*
-         * draw_frame() MUST come first — it calls ncplane_erase() which
-         * clears the plane.  Screen draw functions then paint on top of the
-         * cleared frame.  Never call ncplane_erase() in a screen function.
+         * Drawing order:
+         *   1. draw_frame() on the screen plane — clears + draws border/status
+         *   2. screen_*_draw() on the screen plane — content inside the frame
+         *   3. draw_keypad() on the phone plane — visual keypad below screen
+         *   4. notcurses_render() — composite everything to terminal
          *
-         * PATTERN for all screen_*_draw() functions:
-         * ────────────────────────────────────────────
-         *   void screen_foo_draw(struct ncplane *phone) {
-         *       // The content area starts at row CONTENT_ROW_START (= 3).
-         *       // Left margin is col 2 (one inside border + one gap).
-         *       // Right limit is PHONE_COLS - 3.
-         *
-         *       // Title
-         *       ghost_text(phone, 3, 2, COL_GHOST_ON, "TITLE TEXT");
-         *
-         *       // Separator under title (optional)
-         *       ghost_hline(phone, 4, 2, PHONE_COLS-4, "─", COL_SEPARATOR);
-         *
-         *       // Data rows using the label/value pattern
-         *       ghost_label_value(phone, 5, 2, VALUE_COL, "LABEL", "value");
-         *       ghost_label_value(phone, 6, 2, VALUE_COL, "LABEL2","value2");
-         *
-         *       // Key hint at bottom
-         *       ghost_text(phone, PHONE_ROWS-3, 2, COL_HINT, "[↑↓] Scroll");
-         *   }
+         * The screen plane is a child of phone, positioned at (0,0) and
+         * sized PHONE_SCREEN_ROWS × PHONE_COLS.  All screen functions see
+         * only this PHONE_SCREEN_ROWS-row canvas.  The keypad is drawn on
+         * the parent phone plane starting at KEYPAD_START_ROW.
          */
-        draw_frame(phone, tick, screen_name);
+        draw_frame(screen, tick, screen_name);
         tick++;
         voice_memo_service_tick();
 
         switch (current_screen) {
-            case SCREEN_HOME:
-                screen_home_draw(phone);
-                break;
-            case SCREEN_SETTINGS:
-                screen_settings_draw(phone);
-                break;
-            case SCREEN_CALLS:
-                screen_calls_draw(phone);
-                break;
-            case SCREEN_MESSAGES:
-                screen_messages_draw(phone);
-                break;
-            case SCREEN_CONTACTS:
-                screen_contacts_draw(phone);
-                break;
-            case SCREEN_MP3:
-                screen_mp3_draw(phone);
-                break;
-            case SCREEN_VOICE_MEMO:
-                screen_voice_memo_draw(phone);
-                break;
-            case SCREEN_NOTES:
-                screen_notes_draw(phone);
-                break;
-            case SCREEN_ALARM:
-                screen_alarm_draw(phone);
-                break;
-            case SCREEN_THEME:
-                screen_theme_draw(phone);
-                break;
-            case SCREEN_BLUETOOTH:
-                screen_bluetooth_draw(phone);
-                break;
-            /*
-             * HOW TO ADD A NEW SCREEN DRAW:
-             *   case SCREEN_CALLS:
-             *       screen_calls_draw(phone);
-             *       break;
-             */
+            case SCREEN_HOME:       screen_home_draw(screen);       break;
+            case SCREEN_SETTINGS:   screen_settings_draw(screen);   break;
+            case SCREEN_CALLS:      screen_calls_draw(screen);      break;
+            case SCREEN_MESSAGES:   screen_messages_draw(screen);   break;
+            case SCREEN_CONTACTS:   screen_contacts_draw(screen);   break;
+            case SCREEN_MP3:        screen_mp3_draw(screen);        break;
+            case SCREEN_VOICE_MEMO: screen_voice_memo_draw(screen); break;
+            case SCREEN_NOTES:      screen_notes_draw(screen);      break;
+            case SCREEN_ALARM:      screen_alarm_draw(screen);      break;
+            case SCREEN_THEME:      screen_theme_draw(screen);      break;
+            case SCREEN_BLUETOOTH:  screen_bluetooth_draw(screen);  break;
             default:
-                ghost_text(phone, 4, 3, COL_PLACEHOLDER, TEXT_COMING_SOON);
-                ghost_text(phone, 6, 3, COL_HINT,        TEXT_GO_HOME);
+                ghost_text(screen, 4, 3, COL_PLACEHOLDER, TEXT_COMING_SOON);
+                ghost_text(screen, 6, 3, COL_HINT,        TEXT_GO_HOME);
                 break;
         }
 
-        /* ── RENDER PHASE ────────────────────────────────────────────────── */
-        /*
-         * notcurses_render(nc)
-         * ─────────────────────
-         * Composites all planes from bottom (stdplane) to top (phone plane),
-         * diffs the result against the last rendered frame, and sends only
-         * the terminal escape codes needed to update changed cells.
-         *
-         * This diff-and-patch approach is critical on slow links (UART, USB
-         * serial to a Pi) — it minimises the bytes sent to the terminal.
-         *
-         * ALWAYS call this after all drawing for the frame is complete.
-         */
+        /* ── KEYPAD (drawn on the parent phone plane) ────────────────── */
+        draw_keypad(phone, last_key);
+
+        /* ── RENDER ──────────────────────────────────────────────────── */
         notcurses_render(nc);
 
-        /* ── INPUT PHASE ─────────────────────────────────────────────────── */
-        /*
-         * notcurses_get(nc, &timeout, &ni)
-         * ────────────────────────────────
-         * Waits up to timeout for input, then returns 0 if none arrived.
-         * This keeps the UI live (timers/visualizer animate) while still
-         * avoiding a busy-loop.
-         *
-         * KEY CODE REFERENCE:
-         * ────────────────────
-         * Regular characters:  'a' 'A' '1' ' ' '\n'  etc. (ASCII codepoints)
-         * Arrow keys:          NCKEY_UP  NCKEY_DOWN  NCKEY_LEFT  NCKEY_RIGHT
-         * Enter / Backspace:   NCKEY_ENTER  NCKEY_BACKSPACE
-         * Escape:              NCKEY_ESC
-         * Function keys:       NCKEY_F01 … NCKEY_F12
-         * Terminal resized:    NCKEY_RESIZE   ← sent when window size changes
-         *
-         * Modifier check example:
-         *   if (ni.modifiers & NCKEY_MOD_CTRL && key == 'c') { … }
-         *
-         * PHYSICAL KEYPAD (your hardware buttons):
-         * Map button GPIO events to key codes in hardware.c, then handle
-         * those codes in the switch below.  A typical mapping:
-         *   UP button    → emit NCKEY_UP   (or 'k')
-         *   DOWN button  → emit NCKEY_DOWN (or 'j')
-         *   SELECT       → emit NCKEY_ENTER
-         *   BACK/ESC     → emit NCKEY_ESC  (or 'b')
-         */
+        /* ── INPUT ───────────────────────────────────────────────────── */
         ncinput ni;
         struct timespec timeout = { .tv_sec = 0, .tv_nsec = 33000000L };
         uint32_t key = notcurses_get(nc, &timeout, &ni);
+
         if (key == 0) {
+            last_key = 0;   /* no key → clear highlight */
             continue;
         }
         if (ni.evtype == NCTYPE_REPEAT || ni.evtype == NCTYPE_RELEASE) {
             continue;
         }
 
-        /* GLOBAL KEYS — handled before routing to screen
-         *
-         * C CONCEPT: continue
-         * ────────────────────
-         * Inside a loop, 'continue' skips the rest of the current iteration
-         * and jumps back to the top of the loop (the while condition).
-         * Use it when you've handled the input and want to immediately redraw.
-         *
-         * C CONCEPT: break (inside a loop)
-         * ─────────────────────────────────
-         * 'break' exits the nearest enclosing loop.
-         * Here it exits the while(1) loop, falling through to cleanup.
-         */
-        if (key == NCKEY_RESIZE) { continue; }  /* redraw at new size */
+        /* Store for keypad visual highlight on next frame */
+        last_key = key;
+
+        /* ── GLOBAL KEYS ─────────────────────────────────────────────── */
+        if (key == NCKEY_RESIZE) { continue; }
         if (current_screen == SCREEN_HOME && (key == 'q' || key == 'Q')) {
             break;
         }
 
-        /* SCREEN-SPECIFIC INPUT ROUTING
-         *
-         * Each screen_*_input() receives the key and returns the new
-         * screen_id.  If the screen doesn't handle the key, it returns
-         * its own screen_id unchanged (a no-op navigation).
-         *
-         * PATTERN for all screen_*_input() functions:
-         * ────────────────────────────────────────────
-         *   screen_id screen_foo_input(uint32_t key) {
-         *       switch (key) {
-         *           case NCKEY_UP:
-         *               // move selection up
-         *               return SCREEN_FOO;   // stay on this screen
-         *           case NCKEY_DOWN:
-         *               // move selection down
-         *               return SCREEN_FOO;
-         *           case NCKEY_ENTER:
-         *               // confirm selection → navigate somewhere
-         *               return SCREEN_BAR;
-         *           case NCKEY_ESC:
-         *               return SCREEN_HOME;  // back to home
-         *           default:
-         *               return SCREEN_FOO;   // unhandled → stay
-         *       }
-         *   }
-         *
-         * NOTE: screen_*_input() should NOT draw anything.  Drawing
-         * happens only in screen_*_draw(), called at the top of the loop.
-         * Input functions only update state; the next loop iteration draws.
-         *
-         * HOW TO ADD INPUT FOR A NEW SCREEN:
-         *   case SCREEN_CALLS:
-         *       current_screen = screen_calls_input(key);
-         *       break;
-         */
+        /* ── SCREEN-SPECIFIC INPUT ROUTING ───────────────────────────── */
         switch (current_screen) {
-            case SCREEN_HOME:
-                current_screen = screen_home_input(key);
-                break;
-            case SCREEN_SETTINGS:
-                current_screen = screen_settings_input(key);
-                break;
-            case SCREEN_CALLS:
-                current_screen = screen_calls_input(key);
-                break;
-            case SCREEN_MESSAGES:
-                current_screen = screen_messages_input(key);
-                break;
-            case SCREEN_CONTACTS:
-                current_screen = screen_contacts_input(key);
-                break;
-            case SCREEN_MP3:
-                current_screen = screen_mp3_input(key);
-                break;
-            case SCREEN_VOICE_MEMO:
-                current_screen = screen_voice_memo_input(key);
-                break;
-            case SCREEN_NOTES:
-                current_screen = screen_notes_input(key);
-                break;
-            case SCREEN_ALARM:
-                current_screen = screen_alarm_input(key);
-                break;
-            case SCREEN_THEME:
-                current_screen = screen_theme_input(key);
-                break;
-            case SCREEN_BLUETOOTH:
-                current_screen = screen_bluetooth_input(key);
-                break;
-            default:
-                break;
+            case SCREEN_HOME:       current_screen = screen_home_input(key);       break;
+            case SCREEN_SETTINGS:   current_screen = screen_settings_input(key);   break;
+            case SCREEN_CALLS:      current_screen = screen_calls_input(key);      break;
+            case SCREEN_MESSAGES:   current_screen = screen_messages_input(key);   break;
+            case SCREEN_CONTACTS:   current_screen = screen_contacts_input(key);   break;
+            case SCREEN_MP3:        current_screen = screen_mp3_input(key);        break;
+            case SCREEN_VOICE_MEMO: current_screen = screen_voice_memo_input(key); break;
+            case SCREEN_NOTES:      current_screen = screen_notes_input(key);      break;
+            case SCREEN_ALARM:      current_screen = screen_alarm_input(key);      break;
+            case SCREEN_THEME:      current_screen = screen_theme_input(key);      break;
+            case SCREEN_BLUETOOTH:  current_screen = screen_bluetooth_input(key);  break;
+            default: break;
         }
     }
 
     /* ── Cleanup — REVERSE order of creation ────────────────────────────── */
     /*
-     * C CONCEPT: manual resource management
-     * ──────────────────────────────────────
-     * C has no garbage collector.  Every resource you acquire must be
-     * explicitly released, in reverse order of acquisition.
-     *
-     * ncplane_destroy(plane)
-     *   Frees this plane and all its children.
-     *   After this, the 'phone' pointer is dangling — never use it again.
-     *
-     * notcurses_stop(nc)
-     *   Destroys all remaining planes (including stdplane).
-     *   Restores terminal to normal mode (exits raw input).
-     *   Returns to normal screen (scrollback reappears).
-     *   Frees all internal Notcurses memory.
-     *   If you skip this after a crash, run 'reset' in the terminal to fix it.
-     *
-     * hardware_cleanup()
-     *   Closes any I2C/UART file descriptors opened by hardware_init().
+     * ncplane_destroy(phone) also destroys its child (screen plane).
      */
     ncplane_destroy(phone);
     notcurses_stop(nc);

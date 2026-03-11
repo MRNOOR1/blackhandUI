@@ -90,11 +90,58 @@ Nav bar
  *    - PHONE_ROWS should be at least 10 for status bar + content + footer
  */
 
-/* Width of the phone plane in terminal columns */
-#define PHONE_COLS 32
+/* ─── HyperPixel 4.0 Display: 400×800 pixels ──────────────────────────── */
+/*
+ * At a monospace font of ~10×20 pixels per cell (e.g. Iosevka 10pt):
+ *   400 / 10 = 40 columns
+ *   800 / 20 = 40 rows
+ *
+ * The display is split into two zones:
+ *   PHONE_SCREEN_ROWS  — the "display" (status, content, softkey footer)
+ *   KEYPAD_ROWS         — visual on-screen keypad below the screen
+ *
+ * Total plane height = PHONE_SCREEN_ROWS + KEYPAD_ROWS
+ */
 
-/* Height of the phone plane in terminal rows */
-#define PHONE_ROWS 18
+/* Width of the phone plane in terminal columns */
+#define PHONE_COLS 36
+
+/* Height of the screen portion (border + status + content + footer) */
+#define PHONE_SCREEN_ROWS 20
+
+/* Height of the on-screen keypad area below the screen */
+#define KEYPAD_ROWS 16
+
+/* Total height of the combined phone plane */
+#define PHONE_ROWS (PHONE_SCREEN_ROWS + KEYPAD_ROWS)
+
+/* ─── Keypad Layout Constants ──────────────────────────────────────────── */
+/*
+ *  Keypad region spans rows PHONE_SCREEN_ROWS .. PHONE_ROWS-1 on the plane.
+ *
+ *  Visual layout (row offsets relative to PHONE_SCREEN_ROWS):
+ *
+ *    +0   ┌─ separator ─────────────────────────────────┐
+ *    +1   │  [LSK]                            [RSK]     │
+ *    +2   │                                             │
+ *    +3   │              ▲                              │
+ *    +4   │          ◀  [OK]  ▶                         │
+ *    +5   │              ▼                              │
+ *    +6   │                                             │
+ *    +7   │         [ 1 ] [ 2 ] [ 3 ]                   │
+ *    +8   │                                             │
+ *    +9   │         [ 4 ] [ 5 ] [ 6 ]                   │
+ *    +10  │                                             │
+ *    +11  │         [ 7 ] [ 8 ] [ 9 ]                   │
+ *    +12  │                                             │
+ *    +13  │         [ * ] [ 0 ] [ # ]                   │
+ *    +14  │                                             │
+ *    +15  └─────────────────────────────────────────────┘
+ */
+#define KEYPAD_START_ROW    PHONE_SCREEN_ROWS
+#define KEYPAD_SOFTKEY_ROW  (KEYPAD_START_ROW + 1)
+#define KEYPAD_DPAD_ROW     (KEYPAD_START_ROW + 3)
+#define KEYPAD_NUM_ROW      (KEYPAD_START_ROW + 7)
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  COLOR PALETTE
