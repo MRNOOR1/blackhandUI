@@ -103,6 +103,10 @@
  *  functions.  The actual implementations live in .c files.
  * ══════════════════════════════════════════════════════════════════════════ */
 
+#include <stdlib.h>
+/*  Provides setenv().  Used to set TERM=linux as a fallback when running
+ *  directly on the framebuffer console (no shell to set it for us).        */
+
 #include <locale.h>
 /*  Provides setlocale().  Must be called before any Unicode output so the
  *  C runtime uses the correct character encoding (UTF-8 on the Pi).
@@ -153,11 +157,13 @@
  *    snprintf(buffer, size, fmt, ...)   format a string into a char array   */
 
 #include <string.h>
+#include <ctype.h>
 /*  String functions.  Used here:
  *    strlen(str)          count bytes in str (not counting '\0')
  *    strcat(dest, src)    append src to dest (dest must have room!)          */
 
 #include <stdbool.h>
+#include <time.h>
 /*  Provides 'bool', 'true' (= 1), and 'false' (= 0).
  *  Without this header you'd write int charging = 1 instead of
  *  bool charging = true — less readable and more error-prone.               */
@@ -198,14 +204,108 @@
 #include "services/settings_service.h"
 #include "frame_renderer.h"
 #include "draw_utils.h"
-#include "keypad_renderer.h"
 #include "services/theme_service.h"
 #include "services/notes_service.h"
 #include "services/mp3_service.h"
 #include "services/voice_memo_service.h"
 #include "services/contacts_service.h"
-#include "services/alarm_service.h"
 #include "services/comm_service.h"
+#include "services/pin_service.h"
+#include "services/bluetooth_service.h"
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+ *  DEBUG INPUT DISPLAY
+ *
+ *  Shows the last input event on screen so you can verify what the device
+ *  is sending.  Remove this section once input is confirmed working.
+ * ══════════════════════════════════════════════════════════════════════════ */
+static char g_debug_line1[128] = "NO INPUT YET";
+static char g_debug_line2[128] = "";
+static int  g_debug_touch_x = -1;
+static int  g_debug_touch_y = -1;
+static int  g_debug_event_count = 0;
+
+static void debug_record_event(uint32_t key, const ncinput *ni) {
+    g_debug_event_count++;
+
+    const char *evtype_str = "?";
+    switch (ni->evtype) {
+        case NCTYPE_UNKNOWN: evtype_str = "UNK"; break;
+        case NCTYPE_PRESS:   evtype_str = "PRS"; break;
+        case NCTYPE_REPEAT:  evtype_str = "RPT"; break;
+        case NCTYPE_RELEASE: evtype_str = "REL"; break;
+        default:             evtype_str = "???"; break;
+    }
+
+    if (key == NCKEY_BUTTON1 || key == NCKEY_BUTTON2 || key == NCKEY_BUTTON3) {
+        g_debug_touch_y = (int)ni->y;
+        g_debug_touch_x = (int)ni->x;
+        snprintf(g_debug_line1, sizeof(g_debug_line1),
+                 "#%d TOUCH btn=%d y=%d x=%d %s",
+                 g_debug_event_count,
+                 (key == NCKEY_BUTTON1) ? 1 : (key == NCKEY_BUTTON2) ? 2 : 3,
+                 (int)ni->y, (int)ni->x, evtype_str);
+    } else if (key > 0x100000) {
+        /* Special key (arrow, enter, etc.) */
+        const char *name = "SPECIAL";
+        if (key == NCKEY_UP)        name = "UP";
+        else if (key == NCKEY_DOWN) name = "DOWN";
+        else if (key == NCKEY_LEFT) name = "LEFT";
+        else if (key == NCKEY_RIGHT)name = "RIGHT";
+        else if (key == NCKEY_ENTER)name = "ENTER";
+        else if (key == NCKEY_BACKSPACE) name = "BKSP";
+        else if (key == NCKEY_TAB)  name = "TAB";
+        else if (key == NCKEY_RESIZE) name = "RESIZE";
+        snprintf(g_debug_line1, sizeof(g_debug_line1),
+                 "#%d KEY=0x%X [%s] %s",
+                 g_debug_event_count, key, name, evtype_str);
+    } else if (key >= 32 && key <= 126) {
+        snprintf(g_debug_line1, sizeof(g_debug_line1),
+                 "#%d KEY='%c' (0x%X) %s",
+                 g_debug_event_count, (char)key, key, evtype_str);
+    } else {
+        snprintf(g_debug_line1, sizeof(g_debug_line1),
+                 "#%d KEY=0x%X %s",
+                 g_debug_event_count, key, evtype_str);
+    }
+
+    /* Line 2: touch marker position */
+    if (g_debug_touch_x >= 0) {
+        snprintf(g_debug_line2, sizeof(g_debug_line2),
+                 "LAST TOUCH: y=%d x=%d", g_debug_touch_y, g_debug_touch_x);
+    }
+}
+
+static void debug_draw(struct ncplane *phone) {
+    unsigned rows, cols;
+    ncplane_dim_yx(phone, &rows, &cols);
+
+    /* Draw debug info at the very bottom of the phone plane */
+    int dbg_row1 = (int)rows - 2;
+    int dbg_row2 = (int)rows - 1;
+    if (dbg_row1 < 0) return;
+
+    ncplane_set_fg_rgb(phone, 0x00FF00);  /* bright green for visibility */
+    ncplane_set_bg_rgb(phone, 0x000000);  /* black background */
+
+    /* Clear the debug rows */
+    for (int x = 0; x < (int)cols; x++) {
+        ncplane_putchar_yx(phone, dbg_row1, x, ' ');
+        if (dbg_row2 < (int)rows)
+            ncplane_putchar_yx(phone, dbg_row2, x, ' ');
+    }
+
+    ncplane_set_fg_rgb(phone, 0x00FF00);
+    ncplane_set_bg_rgb(phone, 0x000000);
+    ncplane_putstr_yx(phone, dbg_row1, 0, g_debug_line1);
+
+    if (g_debug_line2[0] && dbg_row2 < (int)rows) {
+        ncplane_set_fg_rgb(phone, 0xFFFF00);  /* yellow */
+        ncplane_set_bg_rgb(phone, 0x000000);
+        ncplane_putstr_yx(phone, dbg_row2, 0, g_debug_line2);
+    }
+}
 
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -264,16 +364,22 @@ static struct ncplane *create_phone_plane(struct ncplane *std) {
     unsigned term_rows, term_cols;
     ncplane_dim_yx(std, &term_rows, &term_cols);
 
-    int start_y = ((int)term_rows - PHONE_ROWS) / 2;
-    int start_x = ((int)term_cols - PHONE_COLS) / 2;
-    if (start_y < 0) start_y = 0;
-    if (start_x < 0) start_x = 0;
+    int target_rows = PHONE_ROWS;
+    int target_cols = PHONE_COLS;
+
+    if (target_rows > (int)term_rows) target_rows = (int)term_rows;
+    if (target_cols > (int)term_cols) target_cols = (int)term_cols;
+
+    int origin_y = ((int)term_rows - target_rows) / 2;
+    int origin_x = ((int)term_cols - target_cols) / 2;
+    if (origin_y < 0) origin_y = 0;
+    if (origin_x < 0) origin_x = 0;
 
     struct ncplane_options opts = {
-        .y    = start_y,
-        .x    = start_x,
-        .rows = PHONE_ROWS,
-        .cols = PHONE_COLS,
+        .y    = origin_y,
+        .x    = origin_x,
+        .rows = target_rows,
+        .cols = target_cols,
         .name = "phone",
     };
 
@@ -289,14 +395,50 @@ static struct ncplane *create_phone_plane(struct ncplane *std) {
  *  the keypad.
  * ────────────────────────────────────────────────────────────────────────── */
 static struct ncplane *create_screen_plane(struct ncplane *phone) {
+    unsigned rows, cols;
+    ncplane_dim_yx(phone, &rows, &cols);
+
     struct ncplane_options opts = {
         .y    = 0,
         .x    = 0,
-        .rows = PHONE_SCREEN_ROWS,
-        .cols = PHONE_COLS,
+        .rows = (int)rows,
+        .cols = (int)cols,
         .name = "screen",
     };
     return ncplane_create(phone, &opts);
+}
+
+static int key_matches_binding(uint32_t key, uint32_t binding) {
+    if (key == binding) {
+        return 1;
+    }
+
+    if (key <= 0x7f && binding <= 0x7f) {
+        unsigned char key_ch = (unsigned char)key;
+        unsigned char bind_ch = (unsigned char)binding;
+        if (isalpha(key_ch) && isalpha(bind_ch) &&
+            tolower(key_ch) == tolower(bind_ch)) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static uint32_t normalize_control_key(uint32_t key) {
+
+    if (key_matches_binding(key, KEY_BIND_UP)) return NCKEY_UP;
+    if (key_matches_binding(key, KEY_BIND_DOWN)) return NCKEY_DOWN;
+    if (key_matches_binding(key, KEY_BIND_LEFT)) return NCKEY_LEFT;
+    if (key_matches_binding(key, KEY_BIND_RIGHT)) return NCKEY_RIGHT;
+    if (key_matches_binding(key, KEY_BIND_SELECT)) return NCKEY_ENTER;
+    if (key_matches_binding(key, KEY_BIND_SOFT_LEFT)) return KEY_SOFT_LEFT_ACTION;
+    if (key_matches_binding(key, KEY_BIND_SOFT_RIGHT)) return KEY_SOFT_RIGHT_ACTION;
+    if (key_matches_binding(key, KEY_BIND_SOFT_LEFT_ALT_1)) return KEY_SOFT_LEFT_ACTION;
+    if (key_matches_binding(key, KEY_BIND_SOFT_LEFT_ALT_2)) return KEY_SOFT_LEFT_ACTION;
+    if (key_matches_binding(key, KEY_BIND_SOFT_RIGHT_ALT_1)) return KEY_SOFT_RIGHT_ACTION;
+    if (key_matches_binding(key, KEY_BIND_SOFT_RIGHT_ALT_2)) return KEY_SOFT_RIGHT_ACTION;
+    return key;
 }
 
 
@@ -326,6 +468,18 @@ static struct ncplane *create_screen_plane(struct ncplane *phone) {
 
 int main(void) {
 
+    /* ── TERM fallback — ensure notcurses knows the terminal type ────── */
+    /*
+     * setenv("TERM", "linux", 0)
+     * ───────────────────────────
+     * The third argument (0) means "don't overwrite" — if TERM is already
+     * set (e.g. by the shell or inittab), this is a no-op.  But if the UI
+     * is launched directly from init with no shell, TERM may be unset,
+     * which causes notcurses_init() to fail.  "linux" is the correct
+     * terminal type for the kernel framebuffer console (fbcon).
+     */
+    setenv("TERM", "linux", 0);
+
     /* ── Locale — MUST be first, before any Unicode output ─────────────── */
     /*
      * setlocale(LC_ALL, "")
@@ -340,13 +494,14 @@ int main(void) {
     /* ── Hardware ───────────────────────────────────────────────────────── */
     hardware_init();
     settings_service_init();
+    pin_service_init();
     theme_service_init();
     notes_service_init();
-    mp3_service_init("./Music");
+    mp3_service_init(APP_PATH_MUSIC_DIR);
     voice_memo_service_init();
     contact_service_init();
-    alarm_service_init();
     comm_service_init();
+    bluetooth_service_init();
 
     /* ── Notcurses initialisation ───────────────────────────────────────── */
     /*
@@ -386,6 +541,15 @@ int main(void) {
         return 1;
     }
 
+    /* ── Enable mouse/touchscreen input ─────────────────────────────── */
+    /*
+     * Without this call notcurses never delivers NCKEY_BUTTON1 events,
+     * so touchscreen taps are silently dropped.  NCMICE_ALL_EVENTS
+     * captures press, release, and motion (we filter to press only in
+     * the event loop below).
+     */
+    notcurses_mice_enable(nc, NCMICE_ALL_EVENTS);
+
     /*
      * notcurses_stdplane(nc)
      * ───────────────────────
@@ -394,10 +558,6 @@ int main(void) {
      * Never returns NULL.  Use as parent for our phone plane.
      */
     struct ncplane *std = notcurses_stdplane(nc);
-
-    /* Small dev label on the std plane (visible outside the phone frame) */
-    ncplane_set_fg_rgb(std, COL_DEV_LABEL);
-    ncplane_putstr_yx(std, 0, 2, TEXT_DEV_LABEL);
 
     /* ── Phone plane (full height: screen + keypad) ──────────────────── */
     struct ncplane *phone = create_phone_plane(std);
@@ -441,7 +601,8 @@ int main(void) {
      * feedback.  Reset to 0 on each timeout (no key pressed) so the
      * highlight only flashes for one frame.
      */
-    uint32_t last_key = 0;
+    uint32_t last_dispatch_key = 0;
+    struct timespec last_dispatch_ts = {0};
 
     /* ── Event loop ─────────────────────────────────────────────────────── */
     while (1) {
@@ -457,7 +618,6 @@ int main(void) {
             case SCREEN_MP3:      screen_name = "MP3";      break;
             case SCREEN_VOICE_MEMO: screen_name = "VOICE";  break;
             case SCREEN_NOTES:    screen_name = "NOTES";    break;
-            case SCREEN_ALARM:    screen_name = "ALARM";    break;
             case SCREEN_THEME:    screen_name = "THEME";    break;
             case SCREEN_BLUETOOTH:screen_name = "BT";       break;
             default:              screen_name = "";           break;
@@ -479,6 +639,7 @@ int main(void) {
         draw_frame(screen, tick, screen_name);
         tick++;
         voice_memo_service_tick();
+        mp3_service_update();
 
         switch (current_screen) {
             case SCREEN_HOME:       screen_home_draw(screen);       break;
@@ -489,7 +650,6 @@ int main(void) {
             case SCREEN_MP3:        screen_mp3_draw(screen);        break;
             case SCREEN_VOICE_MEMO: screen_voice_memo_draw(screen); break;
             case SCREEN_NOTES:      screen_notes_draw(screen);      break;
-            case SCREEN_ALARM:      screen_alarm_draw(screen);      break;
             case SCREEN_THEME:      screen_theme_draw(screen);      break;
             case SCREEN_BLUETOOTH:  screen_bluetooth_draw(screen);  break;
             default:
@@ -497,9 +657,6 @@ int main(void) {
                 ghost_text(screen, 6, 3, COL_HINT,        TEXT_GO_HOME);
                 break;
         }
-
-        /* ── KEYPAD (drawn on the parent phone plane) ────────────────── */
-        draw_keypad(phone, last_key);
 
         /* ── RENDER ──────────────────────────────────────────────────── */
         notcurses_render(nc);
@@ -510,23 +667,101 @@ int main(void) {
         uint32_t key = notcurses_get(nc, &timeout, &ni);
 
         if (key == 0) {
-            last_key = 0;   /* no key → clear highlight */
-            continue;
-        }
-        if (ni.evtype == NCTYPE_REPEAT || ni.evtype == NCTYPE_RELEASE) {
             continue;
         }
 
-        /* Store for keypad visual highlight on next frame */
-        last_key = key;
+        /* ── Record EVERY event for debug display (before any filtering) ── */
+        debug_record_event(key, &ni);
+
+        if (ni.evtype == NCTYPE_REPEAT) {
+            continue;
+        }
+
+        /* ── Touchscreen / mouse: map tap position to a key code ─────── */
+        /*
+         * Accept NCKEY_BUTTON1 on PRESS (mouse click) or RELEASE (touch
+         * lift — Linux evdev touchscreens often only report release).
+         * Also accept any NCKEY_BUTTON* variant since some touch drivers
+         * report different button IDs.
+         */
+        if (key == NCKEY_BUTTON1 || key == NCKEY_BUTTON2 || key == NCKEY_BUTTON3) {
+            continue;
+        }
+
+        key = normalize_control_key(key);
+        if (key == 0) {
+            continue;
+        }
+
+        /* ── WASD navigation mapping ─────────────────────────────────── */
+        /*
+         * Map WASD keys to directional actions outside text-entry screens.
+         * In text-entry modes (notes/contacts edit, voice memo naming,
+         * settings PIN), these keys pass through as raw characters for
+         * use as in-editor commands (A=save, D=backspace, etc.).
+         */
+        if (!((current_screen == SCREEN_NOTES && screen_notes_is_edit_mode()) ||
+              (current_screen == SCREEN_CONTACTS && screen_contacts_is_edit_mode()) ||
+              (current_screen == SCREEN_VOICE_MEMO && screen_voice_memo_is_text_entry_mode()) ||
+              (current_screen == SCREEN_SETTINGS && screen_settings_is_pin_entry_mode()))) {
+            switch (key) {
+                case KEY_BIND_WASD_UP:     key = NCKEY_UP;    break;
+                case KEY_BIND_WASD_DOWN:   key = NCKEY_DOWN;  break;
+                case KEY_BIND_WASD_ACTION: key = NCKEY_ENTER; break;
+                case KEY_BIND_WASD_DELETE: key = NCKEY_LEFT;  break;
+                /* Keep uppercase variants too (key_matches_binding handles them
+                 * in normalize_control_key for softkeys; handle manually here) */
+                case 'W': key = NCKEY_UP;    break;
+                case 'S': key = NCKEY_DOWN;  break;
+                case 'A': key = NCKEY_ENTER; break;
+                case 'D': key = NCKEY_LEFT;  break;
+                default: break;
+            }
+        }
+
+        struct timespec now_ts;
+        clock_gettime(CLOCK_MONOTONIC, &now_ts);
+        long delta_ms = (now_ts.tv_sec - last_dispatch_ts.tv_sec) * 1000L +
+                        (now_ts.tv_nsec - last_dispatch_ts.tv_nsec) / 1000000L;
+
+        /*
+         * Some input stacks emit both PRESS and RELEASE for one physical tap.
+         * Keep RELEASE support (needed on some keypads) but suppress the
+         * immediate duplicate when it follows the same key dispatch.
+         */
+        if (ni.evtype == NCTYPE_RELEASE && key == last_dispatch_key &&
+            delta_ms >= 0 && delta_ms < 250) {
+            continue;
+        }
+
+        if (key == last_dispatch_key && delta_ms >= 0 && delta_ms < 45) {
+            continue;
+        }
+        last_dispatch_key = key;
+        last_dispatch_ts = now_ts;
 
         /* ── GLOBAL KEYS ─────────────────────────────────────────────── */
-        if (key == NCKEY_RESIZE) { continue; }
-        if (current_screen == SCREEN_HOME && (key == 'q' || key == 'Q')) {
+        if (key == NCKEY_RESIZE) {
+            ncplane_destroy(phone);
+            phone = create_phone_plane(std);
+            if (!phone) {
+                break;
+            }
+
+            screen = create_screen_plane(phone);
+            if (!screen) {
+                ncplane_destroy(phone);
+                break;
+            }
+
+            continue;
+        }
+        if (current_screen == SCREEN_HOME && key == KEY_BIND_APP_QUIT) {
             break;
         }
 
         /* ── SCREEN-SPECIFIC INPUT ROUTING ───────────────────────────── */
+        screen_id prev_screen = current_screen;
         switch (current_screen) {
             case SCREEN_HOME:       current_screen = screen_home_input(key);       break;
             case SCREEN_SETTINGS:   current_screen = screen_settings_input(key);   break;
@@ -536,10 +771,17 @@ int main(void) {
             case SCREEN_MP3:        current_screen = screen_mp3_input(key);        break;
             case SCREEN_VOICE_MEMO: current_screen = screen_voice_memo_input(key); break;
             case SCREEN_NOTES:      current_screen = screen_notes_input(key);      break;
-            case SCREEN_ALARM:      current_screen = screen_alarm_input(key);      break;
             case SCREEN_THEME:      current_screen = screen_theme_input(key);      break;
             case SCREEN_BLUETOOTH:  current_screen = screen_bluetooth_input(key);  break;
             default: break;
+        }
+
+        if (current_screen == SCREEN_MP3 && prev_screen != SCREEN_MP3) {
+            mp3_service_rescan(APP_PATH_MUSIC_DIR);
+        }
+
+        if (current_screen == SCREEN_CALLS && prev_screen != SCREEN_CALLS) {
+            mp3_service_stop();
         }
     }
 
@@ -552,8 +794,8 @@ int main(void) {
     mp3_service_shutdown();
     voice_memo_service_shutdown();
     contact_service_shutdown();
-    alarm_service_shutdown();
     comm_service_shutdown();
+    bluetooth_service_shutdown();
     notes_service_shutdown();
     settings_service_shutdown();
     hardware_cleanup();

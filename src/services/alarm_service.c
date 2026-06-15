@@ -12,7 +12,11 @@
 static Alarm **s_alarms = NULL;
 static size_t s_count = 0;
 static size_t s_capacity = 0;
-static const char *ALARMS_PATH = "./Alarms";
+static const char *ALARMS_PATH = APP_PATH_ALARMS_DIR;
+static Alarm *s_ringing = NULL;
+static Alarm *s_snooze_alarm = NULL;
+static time_t s_snooze_until = 0;
+static time_t s_last_checked_minute = 0;
 
 static void free_alarm(Alarm *a) {
     if (!a) return;
@@ -31,6 +35,21 @@ static int ensure_capacity(void) {
     return 0;
 }
 
+static const char *repeat_str(alarm_repeat_t r) {
+    switch (r) {
+        case ALARM_DAILY:    return "daily";
+        case ALARM_WEEKDAYS: return "weekdays";
+        default:             return "once";
+    }
+}
+
+static alarm_repeat_t parse_repeat(const char *s) {
+    if (!s) return ALARM_ONCE;
+    if (strcmp(s, "daily") == 0) return ALARM_DAILY;
+    if (strcmp(s, "weekdays") == 0) return ALARM_WEEKDAYS;
+    return ALARM_ONCE;
+}
+
 static int write_alarm_file(const Alarm *a) {
     if (!a || !a->id) return -1;
 
@@ -42,6 +61,7 @@ static int write_alarm_file(const Alarm *a) {
     fprintf(f, "Time: %02d:%02d\n", a->hour, a->minute);
     fprintf(f, "Enabled: %d\n", a->enabled ? 1 : 0);
     fprintf(f, "Label: %s\n", a->label ? a->label : "Alarm");
+    fprintf(f, "Repeat: %s\n", repeat_str(a->repeat));
     fclose(f);
     return 0;
 }
@@ -111,6 +131,7 @@ void alarm_service_init(void) {
         a->minute = 0;
         a->enabled = true;
         a->label = strdup("Alarm");
+        a->repeat = ALARM_ONCE;
 
         char line[256];
         while (fgets(line, sizeof(line), f)) {
@@ -127,6 +148,8 @@ void alarm_service_init(void) {
             } else if (strncmp(line, "Label: ", 7) == 0) {
                 free(a->label);
                 a->label = strdup(line + 7);
+            } else if (strncmp(line, "Repeat: ", 8) == 0) {
+                a->repeat = parse_repeat(line + 8);
             }
         }
         fclose(f);
@@ -166,6 +189,7 @@ Alarm *alarm_service_create(int hour, int minute, const char *label) {
     a->minute = (minute >= 0 && minute < 60) ? minute : 0;
     a->enabled = true;
     a->label = strdup(label ? label : "Alarm");
+    a->repeat = ALARM_ONCE;
     if (!a->id || !a->label) {
         free_alarm(a);
         return NULL;
@@ -206,6 +230,31 @@ int alarm_service_set_time(const char *id, int hour, int minute) {
     return -1;
 }
 
+int alarm_service_set_label(const char *id, const char *label) {
+    if (!id || !label) return -1;
+    for (size_t i = 0; i < s_count; i++) {
+        Alarm *a = s_alarms[i];
+        if (a && a->id && strcmp(a->id, id) == 0) {
+            free(a->label);
+            a->label = strdup(label);
+            return write_alarm_file(a);
+        }
+    }
+    return -1;
+}
+
+int alarm_service_set_repeat(const char *id, alarm_repeat_t repeat) {
+    if (!id) return -1;
+    for (size_t i = 0; i < s_count; i++) {
+        Alarm *a = s_alarms[i];
+        if (a && a->id && strcmp(a->id, id) == 0) {
+            a->repeat = repeat;
+            return write_alarm_file(a);
+        }
+    }
+    return -1;
+}
+
 int alarm_service_delete(const char *id) {
     if (!id) return -1;
     for (size_t i = 0; i < s_count; i++) {
@@ -215,6 +264,11 @@ int alarm_service_delete(const char *id) {
         char path[1024];
         snprintf(path, sizeof(path), "%s/%s", ALARMS_PATH, a->id);
         remove(path);
+        if (s_ringing == a) s_ringing = NULL;
+        if (s_snooze_alarm == a) {
+            s_snooze_alarm = NULL;
+            s_snooze_until = 0;
+        }
         free_alarm(a);
 
         for (size_t j = i; j < s_count - 1; j++) s_alarms[j] = s_alarms[j + 1];
@@ -231,4 +285,73 @@ void alarm_service_shutdown(void) {
     s_alarms = NULL;
     s_count = 0;
     s_capacity = 0;
+}
+
+static int repeat_matches(alarm_repeat_t repeat, const struct tm *now_tm) {
+    if (!now_tm) return 0;
+    if (repeat == ALARM_DAILY) return 1;
+    if (repeat == ALARM_WEEKDAYS) {
+        return (now_tm->tm_wday >= 1 && now_tm->tm_wday <= 5) ? 1 : 0;
+    }
+    return 1;
+}
+
+int alarm_service_tick(void) {
+    time_t now = time(NULL);
+    if (now <= 0) return 0;
+
+    if (s_ringing) return 0;
+
+    if (s_snooze_alarm && s_snooze_until > 0 && now >= s_snooze_until) {
+        s_ringing = s_snooze_alarm;
+        s_snooze_alarm = NULL;
+        s_snooze_until = 0;
+        return 1;
+    }
+
+    time_t minute_bucket = now / 60;
+    if (minute_bucket == s_last_checked_minute) return 0;
+    s_last_checked_minute = minute_bucket;
+
+    struct tm now_tm;
+    if (!localtime_r(&now, &now_tm)) return 0;
+
+    for (size_t i = 0; i < s_count; i++) {
+        Alarm *a = s_alarms[i];
+        if (!a || !a->enabled) continue;
+        if (!repeat_matches(a->repeat, &now_tm)) continue;
+        if (a->hour == now_tm.tm_hour && a->minute == now_tm.tm_min) {
+            s_ringing = a;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+const Alarm *alarm_service_current_ringing(void) {
+    return s_ringing;
+}
+
+void alarm_service_stop_ringing(void) {
+    if (!s_ringing) return;
+    if (s_ringing->repeat == ALARM_ONCE) {
+        s_ringing->enabled = false;
+        write_alarm_file(s_ringing);
+    }
+    s_ringing = NULL;
+    s_snooze_alarm = NULL;
+    s_snooze_until = 0;
+}
+
+void alarm_service_snooze_current(int minutes) {
+    if (!s_ringing) return;
+    if (minutes <= 0) minutes = ALARM_SNOOZE_MIN;
+    s_snooze_alarm = s_ringing;
+    s_snooze_until = time(NULL) + (time_t)(minutes * 60);
+    s_ringing = NULL;
+}
+
+void alarm_service_dismiss_current(void) {
+    alarm_service_stop_ringing();
 }

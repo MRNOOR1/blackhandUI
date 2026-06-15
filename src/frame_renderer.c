@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "config.h"
+#include "bh_skin.h"
 #include "platform/hardware.h"
 #include "services/theme_service.h"
 
@@ -278,8 +279,6 @@ void draw_status_bar(struct ncplane *phone, int tick) {
  * ────────────────────────────────────────────────────────────────────────── */
 void draw_frame(struct ncplane *phone, int tick,
                        const char *screen_name) {
-    (void)screen_name;
-
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
 
@@ -287,41 +286,16 @@ void draw_frame(struct ncplane *phone, int tick,
     if (rows < (unsigned)FRAME_MIN_ROWS || cols < (unsigned)FRAME_MIN_COLS)
         return;
 
-    /* ── Background fill — interior only, leave border cells transparent ── */
-    ghost_fill_rect(phone, 1, 1, (int)rows - 2, (int)cols - 2, ' ', theme_bg(), theme_bg());
+    /* ── Full-bleed background (borderless) ───────────────────────────── */
+    ghost_fill_rect(phone, 0, 0, (int)rows, (int)cols, ' ', theme_bg(), theme_bg());
 
-    /* ── Heavy-line border ─────────────────────────────────────────────── */
-    nccell ul = NCCELL_TRIVIAL_INITIALIZER;
-    nccell ur = NCCELL_TRIVIAL_INITIALIZER;
-    nccell ll = NCCELL_TRIVIAL_INITIALIZER;
-    nccell lr = NCCELL_TRIVIAL_INITIALIZER;
-    nccell hl = NCCELL_TRIVIAL_INITIALIZER;
-    nccell vl = NCCELL_TRIVIAL_INITIALIZER;
+    /* ── Themed status strip (row 0, +row 1 on the instrument theme) ──── */
+    bh_status_strip(phone, tick);
 
-    uint64_t channels = 0;
-    ncchannels_set_bg_rgb(&channels, theme_bg());
-    ncchannels_set_fg_rgb(&channels, theme_border());
-    nccells_light_box(phone, 0, channels, &ul, &ur, &ll, &lr, &hl, &vl);
-
-    ncplane_cursor_move_yx(phone, 0, 0);
-    ncplane_box(phone, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols - 1, 0);
-
-    nccell_release(phone, &ul);
-    nccell_release(phone, &ur);
-    nccell_release(phone, &ll);
-    nccell_release(phone, &lr);
-    nccell_release(phone, &hl);
-    nccell_release(phone, &vl);
-
-    /* ── Status bar ────────────────────────────────────────────────────── */
-    draw_status_bar(phone, tick);
-
-    /* ── Separator line (terminal-first, no duplicate heading) ────────── */
-    ncplane_set_fg_rgb(phone, theme_border());
-    ncplane_set_bg_rgb(phone, theme_bg());
-    ncplane_putstr_yx(phone, 2, 0, "├");
-    for (int x = 1; x < (int)cols - 1; x++) {
-        ncplane_putstr_yx(phone, 2, x, "─");
+    /* ── Themed divider on row 2, carrying the screen tag. The instrument
+     *    theme integrates its divider into the telemetry strip, so skip it
+     *    there to avoid a doubled rule. ─────────────────────────────────── */
+    if (!bh_divider_in_status()) {
+        bh_divider(phone, 2, bh_screen_tag(screen_name));
     }
-    ncplane_putstr_yx(phone, 2, (int)cols - 1, "┤");
 }

@@ -6,14 +6,44 @@
 
 #include "config.h"
 #include "draw_utils.h"
+#include "bh_skin.h"
 #include "ui.h"
 #include "services/notes_service.h"
+#include "services/multitap_service.h"
 #include "services/theme_service.h"
+
+/* ── Notes screen modes ──────────────────────────────────────────────────
+ *
+ * LIST mode:
+ *   up/down    = select note
+ *   left       = delete selected note
+ *   right      = edit selected note
+ *   center     = view note (read-only)
+ *   LSK (q)    = back to menu
+ *   RSK (e)    = create new note
+ *
+ * VIEW mode (read-only):
+ *   up/down    = scroll content
+ *   LSK (q)    = back (prompts save/rename)
+ *   RSK (e)    = enable editing
+ *   On exit    = always prompted to save name or update
+ *
+ * EDIT mode:
+ *   multi-tap text entry
+ *   LSK (Q)    = cancel
+ *   RSK (E)    = save
+ *
+ * SAVE_PROMPT mode:
+ *   shown when exiting view - allows renaming the note
+ *   LSK (q)    = discard name change
+ *   RSK (e)    = save name
+ * ────────────────────────────────────────────────────────────────────── */
 
 typedef enum {
     NOTES_MODE_LIST,
     NOTES_MODE_VIEW,
     NOTES_MODE_EDIT,
+    NOTES_MODE_SAVE_PROMPT,
 } notes_mode_t;
 
 static notes_mode_t mode = NOTES_MODE_LIST;
@@ -21,15 +51,23 @@ static int selected = 0;
 static int list_scroll = 0;
 static int scroll_offset = 0;
 
+/* Delete confirmation */
 static int delete_prompt = 0;
 static int delete_choice_yes = 0;
 static int delete_target = -1;
 
+/* Edit state */
 static int edit_is_new = 1;
 static int edit_index = -1;
-static int edit_field = 0; /* 0 title, 1 content */
-static char edit_title[128];
 static char edit_body[2048];
+static multitap_state s_multitap;
+
+/* Save/rename prompt state */
+static char save_name_buf[128];
+static int save_name_cursor = 0;
+static multitap_state s_save_multitap;
+static char save_target_filename[256];
+static int save_name_pristine = 0;
 
 static void put_clipped(struct ncplane *p, int row, int col, int max_w, const char *text) {
     if (!text || max_w <= 0) return;
@@ -42,18 +80,16 @@ static void put_clipped(struct ncplane *p, int row, int col, int max_w, const ch
     ncplane_putstr_yx(p, row, col, buf);
 }
 
-static void draw_delete_popup(struct ncplane *phone, unsigned rows, unsigned cols) {
-    (void)rows;
-    (void)cols;
-    ghost_confirm_popup(phone, "ARE YOU SURE?", delete_choice_yes);
+static void draw_delete_popup(struct ncplane *phone) {
+    ghost_confirm_popup(phone, "DELETE NOTE?", delete_choice_yes);
 }
 
 static void begin_new_note_edit(void) {
     edit_is_new = 1;
     edit_index = -1;
-    edit_field = 0;
-    snprintf(edit_title, sizeof(edit_title), "");
     snprintf(edit_body, sizeof(edit_body), "");
+    multitap_reset(&s_multitap);
+    s_multitap.field = 0;
     mode = NOTES_MODE_EDIT;
 }
 
@@ -65,40 +101,70 @@ static void begin_edit_existing(int index) {
 
     edit_is_new = 0;
     edit_index = index;
-    edit_field = 0;
-    snprintf(edit_title, sizeof(edit_title), "%s", notes[index]->title ? notes[index]->title : "");
-    snprintf(edit_body, sizeof(edit_body), "%s", notes[index]->content ? notes[index]->content : "");
+    snprintf(edit_body, sizeof(edit_body), "%s",
+             notes[index]->content ? notes[index]->content : "");
+    multitap_reset(&s_multitap);
+    s_multitap.field = 0;
     mode = NOTES_MODE_EDIT;
 }
 
+static void enter_save_prompt(int index) {
+    size_t count = notes_service_note_count();
+    if (index < 0 || index >= (int)count) {
+        mode = NOTES_MODE_LIST;
+        return;
+    }
+    Note **notes = notes_service_list_all(NULL);
+    if (!notes || !notes[index]) {
+        mode = NOTES_MODE_LIST;
+        return;
+    }
+    /* Pre-fill with current title, highlighted for easy replacement */
+    snprintf(save_name_buf, sizeof(save_name_buf), "%s",
+             notes[index]->title ? notes[index]->title : "Untitled");
+    snprintf(save_target_filename, sizeof(save_target_filename), "%s",
+             notes[index]->filename ? notes[index]->filename : "");
+    save_name_cursor = (int)strlen(save_name_buf);
+    save_name_pristine = 1;
+    multitap_init(&s_save_multitap);
+    mode = NOTES_MODE_SAVE_PROMPT;
+}
+
 static void save_edit(void) {
-    const char *title = (edit_title[0] == '\0') ? "Untitled" : edit_title;
     const char *body = edit_body;
 
     if (edit_is_new) {
-        notes_service_create(title, body);
-        selected = 0;
-        list_scroll = 0;
+        /* Create note - will go to save prompt after */
+        Note *n = notes_service_create("Untitled", body);
+        if (n) {
+            selected = 0;
+            list_scroll = 0;
+            /* Go to save prompt to name it */
+            enter_save_prompt(0);
+            return;
+        }
     } else {
         size_t count = notes_service_note_count();
         if (edit_index >= 0 && edit_index < (int)count) {
             Note **notes = notes_service_list_all(NULL);
             if (notes && notes[edit_index]) {
                 Note *n = notes[edit_index];
-                free(n->title);
                 free(n->content);
-                n->title = strdup(title);
                 n->content = strdup(body);
                 notes_service_update_note(n);
                 selected = 0;
                 list_scroll = 0;
             }
         }
+        /* Go to save prompt */
+        enter_save_prompt(0);
+        return;
     }
 
     mode = NOTES_MODE_LIST;
 }
 
+/* ── DRAW: List mode ─────────────────────────────────────────────────── */
 static void draw_list(struct ncplane *phone) {
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
@@ -106,22 +172,13 @@ static void draw_list(struct ncplane *phone) {
     int width = INNER_WIDTH(cols);
     if (width < 10) return;
 
-    ncplane_set_fg_rgb(phone, theme_text_primary());
-    ncplane_set_bg_rgb(phone, theme_bg());
-    ncplane_putstr_yx(phone, CONTENT_START_ROW, CONTENT_COL, "NOTES");
-
-    ncplane_set_fg_rgb(phone, theme_text_muted());
-    for (int x = 0; x < width && CONTENT_COL + x < (int)cols - 1; x++) {
-        ncplane_putstr_yx(phone, CONTENT_START_ROW + 1, CONTENT_COL + x, "\u2500");
-    }
-
     size_t count = notes_service_note_count();
     if (count == 0) {
-        int mid = (CONTENT_START_ROW + 2 + footer) / 2;
+        int mid = (CONTENT_START_ROW + footer) / 2;
         ghost_text(phone, mid, CONTENT_COL, theme_text_muted(), "No notes yet");
-        ghost_text(phone, mid + 1, CONTENT_COL, theme_text_muted(), "Right soft key creates note");
-        ghost_softkeys(phone, "[Back]", "[New]");
-        if (delete_prompt) draw_delete_popup(phone, rows, cols);
+        ghost_text(phone, mid + 1, CONTENT_COL, theme_text_muted(), "Press E to create");
+        ghost_softkeys(phone, NULL, NULL);
+        if (delete_prompt) draw_delete_popup(phone);
         return;
     }
 
@@ -131,8 +188,8 @@ static void draw_list(struct ncplane *phone) {
     Note **notes = notes_service_list_all(NULL);
     if (!notes) return;
 
-    int list_start = CONTENT_START_ROW + 3;
-    int max_visible = footer - list_start;
+    int list_start = CONTENT_START_ROW;
+    int max_visible = footer - list_start - 2;
     if (max_visible < 1) max_visible = 1;
 
     if (selected < list_scroll) list_scroll = selected;
@@ -145,17 +202,20 @@ static void draw_list(struct ncplane *phone) {
         int row = list_start + i;
         int sel = (idx == selected);
 
-        ncplane_set_fg_rgb(phone, sel ? theme_text_primary() : theme_text_muted());
-        ncplane_set_bg_rgb(phone, theme_bg());
-        ncplane_putstr_yx(phone, row, CONTENT_COL, sel ? MENU_CURSOR : MENU_CURSOR_BLANK);
-        put_clipped(phone, row, CONTENT_COL + 2, width - 2, notes[idx]->title ? notes[idx]->title : "Untitled");
+        char nm[64];
+        snprintf(nm, sizeof(nm), "%s", notes[idx]->title ? notes[idx]->title : "Untitled");
+        int maxlbl = width - 4;
+        if (maxlbl > 0 && (int)strlen(nm) > maxlbl) nm[maxlbl] = '\0';
+        bh_list_item(phone, row, CONTENT_COL, width, nm, "", sel, idx);
     }
 
-    ghost_text(phone, footer - 1, CONTENT_COL, theme_text_muted(), "Left:Delete  Enter:Open/Edit");
-    ghost_softkeys(phone, "[Back]", "[New]");
-    if (delete_prompt) draw_delete_popup(phone, rows, cols);
+    ghost_softkeys(phone, NULL, NULL);
+    ghost_text(phone, (int)rows - 3, CONTENT_COL, theme_text_muted(),
+               "A:View  E:New  D:Delete");
+    if (delete_prompt) draw_delete_popup(phone);
 }
 
+/* ── DRAW: View mode (read-only) ─────────────────────────────────────── */
 static void draw_view(struct ncplane *phone) {
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
@@ -169,19 +229,9 @@ static void draw_view(struct ncplane *phone) {
     if (!notes || !notes[selected]) { mode = NOTES_MODE_LIST; return; }
     Note *n = notes[selected];
 
-    ncplane_set_fg_rgb(phone, theme_text_primary());
-    ncplane_set_bg_rgb(phone, theme_bg());
-    put_clipped(phone, CONTENT_START_ROW, CONTENT_COL, width, n->title ? n->title : "Untitled");
-
-    ncplane_set_fg_rgb(phone, theme_text_muted());
-    put_clipped(phone, CONTENT_START_ROW + 1, CONTENT_COL, width, n->created_at ? n->created_at : "");
-
-    for (int x = 0; x < width && CONTENT_COL + x < (int)cols - 1; x++) {
-        ncplane_putstr_yx(phone, CONTENT_START_ROW + 2, CONTENT_COL + x, "\u2500");
-    }
-
-    int content_start = CONTENT_START_ROW + 3;
-    int max_lines = footer - content_start;
+    /* No title shown in view - content only as per spec */
+    int content_start = CONTENT_START_ROW;
+    int max_lines = footer - content_start - 1;
     if (max_lines < 1) max_lines = 1;
 
     if (n->content && n->content[0] != '\0') {
@@ -212,6 +262,7 @@ static void draw_view(struct ncplane *phone) {
     ghost_softkeys(phone, "[Back]", "[Edit]");
 }
 
+/* ── DRAW: Edit mode ─────────────────────────────────────────────────── */
 static void draw_edit(struct ncplane *phone) {
     unsigned rows, cols;
     ncplane_dim_yx(phone, &rows, &cols);
@@ -220,21 +271,10 @@ static void draw_edit(struct ncplane *phone) {
 
     ncplane_set_fg_rgb(phone, theme_text_primary());
     ncplane_set_bg_rgb(phone, theme_bg());
-    ncplane_putstr_yx(phone, CONTENT_START_ROW, CONTENT_COL, edit_is_new ? "New Note" : "Edit Note");
+    ncplane_putstr_yx(phone, CONTENT_START_ROW, CONTENT_COL,
+                      edit_is_new ? "NEW NOTE" : "EDIT NOTE");
 
-    ncplane_set_fg_rgb(phone, theme_text_muted());
-    for (int x = 0; x < width && CONTENT_COL + x < (int)cols - 1; x++) {
-        ncplane_putstr_yx(phone, CONTENT_START_ROW + 1, CONTENT_COL + x, "\u2500");
-    }
-
-    ncplane_set_fg_rgb(phone, edit_field == 0 ? theme_text_primary() : theme_text_muted());
-    ncplane_putstr_yx(phone, CONTENT_START_ROW + 3, CONTENT_COL, "Title:");
-    put_clipped(phone, CONTENT_START_ROW + 4, CONTENT_COL, width, edit_title);
-
-    ncplane_set_fg_rgb(phone, edit_field == 1 ? theme_text_primary() : theme_text_muted());
-    ncplane_putstr_yx(phone, CONTENT_START_ROW + 6, CONTENT_COL, "Content:");
-
-    int body_row = CONTENT_START_ROW + 7;
+    int body_row = CONTENT_START_ROW + 1;
     int body_max = footer - body_row - 1;
     if (body_max < 1) body_max = 1;
 
@@ -255,37 +295,141 @@ static void draw_edit(struct ncplane *phone) {
         ptr = eol + 1;
     }
 
-    ghost_text(phone, footer - 1, CONTENT_COL, theme_text_muted(), "Up/Down:Field  Enter:Next/Newline");
-    ghost_softkeys(phone, "[Q Cancel]", "[E Save]");
+    ghost_softkeys(phone, NULL, NULL);
+    ghost_text(phone, (int)rows - 3, CONTENT_COL, theme_text_muted(),
+               "2-9:ABC  A:Save  D:Back  Q:Discard");
 }
 
+/* ── DRAW: Save/Rename prompt ────────────────────────────────────────── */
+static void draw_save_prompt(struct ncplane *phone) {
+    unsigned rows, cols;
+    ncplane_dim_yx(phone, &rows, &cols);
+    int width = INNER_WIDTH(cols);
+
+    int w = width + 2;
+    int h = NOTES_SAVE_POPUP_HEIGHT;
+    int top = ((int)rows - h) / 2;
+    int left = ((int)cols - w) / 2;
+    if (top < UI_POPUP_MIN_TOP) top = UI_POPUP_MIN_TOP;
+    if (left < UI_POPUP_MIN_LEFT) left = UI_POPUP_MIN_LEFT;
+
+    ghost_fill_rect(phone, top, left, h, w, ' ', theme_text_primary(), theme_bg());
+    ghost_text(phone, top + UI_POPUP_TITLE_ROW_OFFSET, left + UI_POPUP_TEXT_INSET_X,
+               theme_text_primary(), "SAVE NOTE AS:");
+    ghost_text(phone, top + UI_POPUP_INPUT_ROW_OFFSET, left + UI_POPUP_TEXT_INSET_X,
+               theme_text_primary(), save_name_buf);
+
+    /* Show cursor */
+    int cursor_col = left + UI_POPUP_TEXT_INSET_X + save_name_cursor;
+    if (cursor_col < left + w - 1)
+        ghost_text(phone, top + UI_POPUP_INPUT_ROW_OFFSET, cursor_col, theme_border(), "_");
+
+    ghost_text(phone, top + UI_POPUP_HINT_ROW_OFFSET, left + UI_POPUP_TEXT_INSET_X,
+               theme_text_muted(), "2-9:ABC #:Case *:Punct");
+    ghost_softkeys(phone, "[Skip]", "[Save]");
+}
+
+/* ── Main draw dispatcher ────────────────────────────────────────────── */
 void screen_notes_draw(struct ncplane *phone) {
     switch (mode) {
-        case NOTES_MODE_LIST: draw_list(phone); break;
-        case NOTES_MODE_VIEW: draw_view(phone); break;
-        case NOTES_MODE_EDIT: draw_edit(phone); break;
+        case NOTES_MODE_LIST:        draw_list(phone); break;
+        case NOTES_MODE_VIEW:        draw_view(phone); break;
+        case NOTES_MODE_EDIT:        draw_edit(phone); break;
+        case NOTES_MODE_SAVE_PROMPT: draw_save_prompt(phone); break;
     }
 }
 
+/* ── Input handling ──────────────────────────────────────────────────── */
 screen_id screen_notes_input(uint32_t key) {
+    static int s_multitap_ready = 0;
+    if (!s_multitap_ready) {
+        multitap_init(&s_multitap);
+        multitap_init(&s_save_multitap);
+        s_multitap_ready = 1;
+    }
+
     size_t count = notes_service_note_count();
 
+    /* ── SAVE PROMPT mode ──────────────────────────────────────────── */
+    if (mode == NOTES_MODE_SAVE_PROMPT) {
+        switch (key) {
+            case KEY_SOFT_RIGHT_ACTION:
+            case NCKEY_ENTER:
+            case '\n': {
+                /* Save the name */
+                multitap_reset(&s_save_multitap);
+                if (save_name_buf[0] != '\0') {
+                    Note **notes = notes_service_list_all(NULL);
+                    count = notes_service_note_count();
+                    if (count > 0 && notes) {
+                        for (size_t i = 0; i < count; i++) {
+                            if (notes[i] && notes[i]->filename &&
+                                strcmp(notes[i]->filename, save_target_filename) == 0) {
+                                notes_service_rename_note(notes[i], save_name_buf);
+                                break;
+                            }
+                        }
+                    }
+                }
+                mode = NOTES_MODE_LIST;
+                selected = 0;
+                list_scroll = 0;
+                save_name_pristine = 0;
+                return SCREEN_NOTES;
+            }
+            case KEY_SOFT_LEFT_ACTION:
+                /* Skip rename, go back to list */
+                multitap_reset(&s_save_multitap);
+                mode = NOTES_MODE_LIST;
+                selected = 0;
+                list_scroll = 0;
+                save_name_pristine = 0;
+                return SCREEN_NOTES;
+            case NCKEY_BACKSPACE:
+            case 127:
+                multitap_backspace(&s_save_multitap, 0, save_name_buf);
+                save_name_cursor = (int)strlen(save_name_buf);
+                return SCREEN_NOTES;
+            case '#':
+                multitap_toggle_case(&s_save_multitap);
+                return SCREEN_NOTES;
+            default:
+                if ((key >= '0' && key <= '9') || key == '*') {
+                    if (save_name_pristine) {
+                        save_name_buf[0] = '\0';
+                        save_name_pristine = 0;
+                    }
+                    multitap_apply_key(&s_save_multitap, key, 0,
+                                       save_name_buf, sizeof(save_name_buf));
+                    save_name_cursor = (int)strlen(save_name_buf);
+                    return SCREEN_NOTES;
+                }
+                if (key >= 32 && key <= 126) {
+                    if (save_name_pristine) {
+                        save_name_buf[0] = '\0';
+                        save_name_pristine = 0;
+                    }
+                    multitap_reset(&s_save_multitap);
+                    size_t len = strlen(save_name_buf);
+                    if (len + 1 < sizeof(save_name_buf)) {
+                        save_name_buf[len] = (char)key;
+                        save_name_buf[len + 1] = '\0';
+                    }
+                    save_name_cursor = (int)strlen(save_name_buf);
+                    return SCREEN_NOTES;
+                }
+                return SCREEN_NOTES;
+        }
+    }
+
+    /* ── LIST mode ─────────────────────────────────────────────────── */
     if (mode == NOTES_MODE_LIST) {
         if (delete_prompt) {
             switch (key) {
-                case NCKEY_LEFT:
-                case NCKEY_UP:
-                    delete_choice_yes = 0;
-                    return SCREEN_NOTES;
-                case NCKEY_RIGHT:
-                case NCKEY_DOWN:
-                    delete_choice_yes = 1;
-                    return SCREEN_NOTES;
                 case NCKEY_ENTER:
                 case '\n':
-            case 'e':
-            case 'E':
-                if (delete_choice_yes && delete_target >= 0) {
+                    /* A=Yes: delete. */
+                    if (delete_target >= 0) {
                         Note **notes = notes_service_list_all(NULL);
                         if (notes && delete_target < (int)count) {
                             notes_service_delete_note(notes[delete_target]);
@@ -295,13 +439,11 @@ screen_id screen_notes_input(uint32_t key) {
                     }
                     delete_prompt = 0;
                     delete_target = -1;
-                    delete_choice_yes = 0;
                     return SCREEN_NOTES;
-            case 'q':
-            case 'Q':
-                delete_prompt = 0;
+                case KEY_SOFT_LEFT_ACTION:
+                    /* Q=No: cancel. */
+                    delete_prompt = 0;
                     delete_target = -1;
-                    delete_choice_yes = 0;
                     return SCREEN_NOTES;
                 default:
                     return SCREEN_NOTES;
@@ -317,32 +459,32 @@ screen_id screen_notes_input(uint32_t key) {
                 return SCREEN_NOTES;
             case NCKEY_ENTER:
             case '\n':
+                /* A: view note in read-only mode. */
                 if (count > 0) {
-                    begin_edit_existing(selected);
-                } else {
-                    begin_new_note_edit();
+                    scroll_offset = 0;
+                    mode = NOTES_MODE_VIEW;
                 }
                 return SCREEN_NOTES;
-            case NCKEY_RIGHT:
-            case 'e':
-            case 'E':
-                begin_new_note_edit();
-                return SCREEN_NOTES;
             case NCKEY_LEFT:
+                /* D: delete confirmation. */
                 if (count > 0) {
                     delete_prompt = 1;
-                    delete_choice_yes = 0;
                     delete_target = selected;
                 }
                 return SCREEN_NOTES;
-            case 'q':
-            case 'Q':
+            case KEY_SOFT_RIGHT_ACTION:
+                /* E: create new note. */
+                begin_new_note_edit();
+                return SCREEN_NOTES;
+            case KEY_SOFT_LEFT_ACTION:
+                /* Q: back to home. */
                 return SCREEN_HOME;
             default:
                 return SCREEN_NOTES;
         }
     }
 
+    /* ── VIEW mode (read-only) ─────────────────────────────────────── */
     if (mode == NOTES_MODE_VIEW) {
         switch (key) {
             case NCKEY_UP:
@@ -351,85 +493,78 @@ screen_id screen_notes_input(uint32_t key) {
             case NCKEY_DOWN:
                 scroll_offset++;
                 return SCREEN_NOTES;
-            case 'e':
-            case 'E':
-            case NCKEY_ENTER:
-            case '\n':
+            case KEY_SOFT_RIGHT_ACTION:
+                /* RSK = enable editing */
                 begin_edit_existing(selected);
                 return SCREEN_NOTES;
-            case 'q':
-            case 'Q':
-                mode = NOTES_MODE_LIST;
+            case KEY_SOFT_LEFT_ACTION:
+                /* LSK = go back, but prompt to save/rename first */
                 scroll_offset = 0;
+                enter_save_prompt(selected);
                 return SCREEN_NOTES;
             default:
                 return SCREEN_NOTES;
         }
     }
 
+    /* ── EDIT mode ─────────────────────────────────────────────────── */
     switch (key) {
-        case NCKEY_UP:
-            if (edit_field > 0) edit_field--;
-            return SCREEN_NOTES;
-        case NCKEY_DOWN:
-            if (edit_field < 1) edit_field++;
-            return SCREEN_NOTES;
-        case NCKEY_TAB:
-            edit_field = 1 - edit_field;
-            return SCREEN_NOTES;
-        case 'E':
+        case KEY_SOFT_RIGHT_ACTION:
+            /* E: save. */
+            multitap_reset(&s_multitap);
             save_edit();
             return SCREEN_NOTES;
-        case 'Q':
+        case KEY_SOFT_LEFT_ACTION:
+            /* Q: discard and return to list. */
+            multitap_reset(&s_multitap);
             mode = NOTES_MODE_LIST;
             return SCREEN_NOTES;
+        case 'a':
+        case 'A':
+            /* A: save (text entry mode — raw key passes through). */
+            multitap_reset(&s_multitap);
+            save_edit();
+            return SCREEN_NOTES;
+        case 'd':
+        case 'D':
+            /* D: backspace (text entry mode — raw key passes through). */
+            multitap_backspace(&s_multitap, 0, edit_body);
+            return SCREEN_NOTES;
         case NCKEY_ENTER:
-        case '\n':
-            if (edit_field == 0) {
-                edit_field = 1;
-            } else {
-                size_t len = strlen(edit_body);
-                if (len + 1 < sizeof(edit_body)) {
-                    edit_body[len] = '\n';
-                    edit_body[len + 1] = '\0';
-                }
+        case '\n': {
+            multitap_reset(&s_multitap);
+            size_t len = strlen(edit_body);
+            if (len + 1 < sizeof(edit_body)) {
+                edit_body[len] = '\n';
+                edit_body[len + 1] = '\0';
             }
             return SCREEN_NOTES;
+        }
         case NCKEY_BACKSPACE:
         case 127:
-            if (edit_field == 0) {
-                size_t len = strlen(edit_title);
-                if (len > 0) edit_title[len - 1] = '\0';
-            } else {
-                size_t len = strlen(edit_body);
-                if (len > 0) edit_body[len - 1] = '\0';
-            }
+            multitap_backspace(&s_multitap, 0, edit_body);
             return SCREEN_NOTES;
-        case NCKEY_RIGHT:
-            if (edit_field == 1) {
-                size_t len = strlen(edit_body);
-                if (len + 1 < sizeof(edit_body)) {
-                    edit_body[len] = '\n';
-                    edit_body[len + 1] = '\0';
-                }
-            }
+        case '#':
+            multitap_toggle_case(&s_multitap);
             return SCREEN_NOTES;
         default:
+            if ((key >= '0' && key <= '9') || key == '*') {
+                multitap_apply_key(&s_multitap, key, 0,
+                                   edit_body, sizeof(edit_body));
+                return SCREEN_NOTES;
+            }
             if (key >= 32 && key <= 126) {
-                if (edit_field == 0) {
-                    size_t len = strlen(edit_title);
-                    if (len + 1 < sizeof(edit_title)) {
-                        edit_title[len] = (char)key;
-                        edit_title[len + 1] = '\0';
-                    }
-                } else {
-                    size_t len = strlen(edit_body);
-                    if (len + 1 < sizeof(edit_body)) {
-                        edit_body[len] = (char)key;
-                        edit_body[len + 1] = '\0';
-                    }
+                multitap_reset(&s_multitap);
+                size_t len = strlen(edit_body);
+                if (len + 1 < sizeof(edit_body)) {
+                    edit_body[len] = (char)key;
+                    edit_body[len + 1] = '\0';
                 }
             }
             return SCREEN_NOTES;
     }
+}
+
+int screen_notes_is_edit_mode(void) {
+    return (mode == NOTES_MODE_EDIT || mode == NOTES_MODE_SAVE_PROMPT) ? 1 : 0;
 }

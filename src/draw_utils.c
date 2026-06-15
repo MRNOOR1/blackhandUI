@@ -1,5 +1,6 @@
 #include "draw_utils.h"
 #include "config.h"
+#include "bh_skin.h"
 #include "services/theme_service.h"
 
 #include <string.h>
@@ -186,31 +187,17 @@ void ghost_label_value(struct ncplane *n,
     ghost_text(n, row, value_col, theme_text_primary(), value); /* bright */
 }
 
+/*
+ * ghost_softkeys() now renders the active theme's decorative footer strip
+ * (wordmark, corner ticks, ornament, sparkline, coordinates ...). The legacy
+ * soft-key label arguments are accepted for source compatibility but the
+ * footer is theme-owned, exactly like the design pack's gallery. Functional
+ * key hints follow the global 6-key convention (Q back / E action).
+ */
 void ghost_softkeys(struct ncplane *n, const char *left_label, const char *right_label) {
-    unsigned rows, cols;
-    ncplane_dim_yx(n, &rows, &cols);
-    if (rows < 3 || cols < 6) return;
-
-    int row = (int)rows - FOOTER_ROW_OFFSET;
-    if (row < 1 || row >= (int)rows - 1) return;
-
-    ghost_set(n, theme_border());
-    for (int x = CONTENT_COL; x < (int)cols - CONTENT_COL; x++) {
-        ncplane_putstr_yx(n, row - 1, x, "-");
-    }
-
-    ghost_set(n, theme_text_muted());
-
-    if (left_label && left_label[0] != '\0') {
-        ncplane_putstr_yx(n, row, CONTENT_COL, left_label);
-    }
-
-    if (right_label && right_label[0] != '\0') {
-        int right_len = (int)strlen(right_label);
-        int right_col = (int)cols - 1 - CONTENT_COL - right_len;
-        if (right_col < CONTENT_COL) right_col = CONTENT_COL;
-        ncplane_putstr_yx(n, row, right_col, right_label);
-    }
+    (void)left_label;
+    (void)right_label;
+    bh_footer(n, NULL);
 }
 
 void ghost_confirm_popup(struct ncplane *n, const char *question, int yes_selected) {
@@ -223,9 +210,10 @@ void ghost_confirm_popup(struct ncplane *n, const char *question, int yes_select
     if (top < 3) top = 3;
     if (left < 2) left = 2;
 
+    (void)yes_selected;
     ghost_fill_rect(n, top, left, h, w, ' ', theme_text_primary(), theme_bg());
     ghost_text(n, top + 1, left + 2, theme_text_primary(), question ? question : "Are you sure?");
-    ghost_text(n, top + 3, left + 2, theme_text_muted(), yes_selected ? "  NO" : "> NO");
-    ghost_text(n, top + 3, left + 12, theme_text_muted(), yes_selected ? "> YES" : "  YES");
-    ghost_softkeys(n, "[NO]", "[YES]");
+    ghost_text(n, top + 3, left + 2,  theme_affirm_border(), "[A] YES");
+    ghost_text(n, top + 3, left + 14, theme_text_muted(),    "[Q] NO");
+    ghost_softkeys(n, NULL, NULL);
 }

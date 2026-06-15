@@ -4,6 +4,16 @@
 #include <notcurses/notcurses.h>
 #include <stdint.h>
 
+typedef struct {
+    int start_row;
+    int softkey_row;
+    int dpad_row;
+    int num_start_row;
+    int row_spacing;
+} keypad_layout;
+
+keypad_layout keypad_layout_compute(int rows, int cols);
+
 /*
  * draw_keypad() — Render the visual on-screen keypad
  *

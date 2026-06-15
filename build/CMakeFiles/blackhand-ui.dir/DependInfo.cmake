@@ -8,12 +8,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/mrnoori/Desktop/blackhandUI/src/bh_skin.c" "CMakeFiles/blackhand-ui.dir/src/bh_skin.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/bh_skin.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/draw_utils.c" "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/frame_renderer.c" "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.o.d"
-  "/Users/mrnoori/Desktop/blackhandUI/src/keypad_renderer.c" "CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/main.c" "CMakeFiles/blackhand-ui.dir/src/main.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/main.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/platform/hardware.c" "CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.o.d"
-  "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_alarm.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_bluetooth.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_bluetooth.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_bluetooth.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_calls.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_calls.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_contacts.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_contacts.c.o.d"
@@ -24,11 +23,13 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_settings.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_settings.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_theme.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_theme.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_theme.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/screens/screen_voice_memo.c" "CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.o.d"
-  "/Users/mrnoori/Desktop/blackhandUI/src/services/alarm_service.c" "CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.o.d"
+  "/Users/mrnoori/Desktop/blackhandUI/src/services/bluetooth_service.c" "CMakeFiles/blackhand-ui.dir/src/services/bluetooth_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/bluetooth_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/comm_service.c" "CMakeFiles/blackhand-ui.dir/src/services/comm_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/comm_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/contacts_service.c" "CMakeFiles/blackhand-ui.dir/src/services/contacts_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/contacts_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/mp3_service.c" "CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.o.d"
+  "/Users/mrnoori/Desktop/blackhandUI/src/services/multitap_service.c" "CMakeFiles/blackhand-ui.dir/src/services/multitap_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/multitap_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/notes_service.c" "CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.o.d"
+  "/Users/mrnoori/Desktop/blackhandUI/src/services/pin_service.c" "CMakeFiles/blackhand-ui.dir/src/services/pin_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/pin_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/settings_service.c" "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/settings_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.c" "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/theme_service.c.o.d"
   "/Users/mrnoori/Desktop/blackhandUI/src/services/voice_memo_service.c" "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o" "gcc" "CMakeFiles/blackhand-ui.dir/src/services/voice_memo_service.c.o.d"

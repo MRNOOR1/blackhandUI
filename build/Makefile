@@ -129,6 +129,30 @@ blackhand-ui/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/build
 .PHONY : blackhand-ui/fast
 
+src/bh_skin.o: src/bh_skin.c.o
+.PHONY : src/bh_skin.o
+
+# target to build an object file
+src/bh_skin.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/bh_skin.c.o
+.PHONY : src/bh_skin.c.o
+
+src/bh_skin.i: src/bh_skin.c.i
+.PHONY : src/bh_skin.i
+
+# target to preprocess a source file
+src/bh_skin.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/bh_skin.c.i
+.PHONY : src/bh_skin.c.i
+
+src/bh_skin.s: src/bh_skin.c.s
+.PHONY : src/bh_skin.s
+
+# target to generate assembly for a file
+src/bh_skin.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/bh_skin.c.s
+.PHONY : src/bh_skin.c.s
+
 src/draw_utils.o: src/draw_utils.c.o
 .PHONY : src/draw_utils.o
 
@@ -177,30 +201,6 @@ src/frame_renderer.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/frame_renderer.c.s
 .PHONY : src/frame_renderer.c.s
 
-src/keypad_renderer.o: src/keypad_renderer.c.o
-.PHONY : src/keypad_renderer.o
-
-# target to build an object file
-src/keypad_renderer.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.o
-.PHONY : src/keypad_renderer.c.o
-
-src/keypad_renderer.i: src/keypad_renderer.c.i
-.PHONY : src/keypad_renderer.i
-
-# target to preprocess a source file
-src/keypad_renderer.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.i
-.PHONY : src/keypad_renderer.c.i
-
-src/keypad_renderer.s: src/keypad_renderer.c.s
-.PHONY : src/keypad_renderer.s
-
-# target to generate assembly for a file
-src/keypad_renderer.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/keypad_renderer.c.s
-.PHONY : src/keypad_renderer.c.s
-
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -248,30 +248,6 @@ src/platform/hardware.s: src/platform/hardware.c.s
 src/platform/hardware.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/platform/hardware.c.s
 .PHONY : src/platform/hardware.c.s
-
-src/screens/screen_alarm.o: src/screens/screen_alarm.c.o
-.PHONY : src/screens/screen_alarm.o
-
-# target to build an object file
-src/screens/screen_alarm.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.o
-.PHONY : src/screens/screen_alarm.c.o
-
-src/screens/screen_alarm.i: src/screens/screen_alarm.c.i
-.PHONY : src/screens/screen_alarm.i
-
-# target to preprocess a source file
-src/screens/screen_alarm.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.i
-.PHONY : src/screens/screen_alarm.c.i
-
-src/screens/screen_alarm.s: src/screens/screen_alarm.c.s
-.PHONY : src/screens/screen_alarm.s
-
-# target to generate assembly for a file
-src/screens/screen_alarm.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_alarm.c.s
-.PHONY : src/screens/screen_alarm.c.s
 
 src/screens/screen_bluetooth.o: src/screens/screen_bluetooth.c.o
 .PHONY : src/screens/screen_bluetooth.o
@@ -513,29 +489,29 @@ src/screens/screen_voice_memo.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/screens/screen_voice_memo.c.s
 .PHONY : src/screens/screen_voice_memo.c.s
 
-src/services/alarm_service.o: src/services/alarm_service.c.o
-.PHONY : src/services/alarm_service.o
+src/services/bluetooth_service.o: src/services/bluetooth_service.c.o
+.PHONY : src/services/bluetooth_service.o
 
 # target to build an object file
-src/services/alarm_service.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.o
-.PHONY : src/services/alarm_service.c.o
+src/services/bluetooth_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/bluetooth_service.c.o
+.PHONY : src/services/bluetooth_service.c.o
 
-src/services/alarm_service.i: src/services/alarm_service.c.i
-.PHONY : src/services/alarm_service.i
+src/services/bluetooth_service.i: src/services/bluetooth_service.c.i
+.PHONY : src/services/bluetooth_service.i
 
 # target to preprocess a source file
-src/services/alarm_service.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.i
-.PHONY : src/services/alarm_service.c.i
+src/services/bluetooth_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/bluetooth_service.c.i
+.PHONY : src/services/bluetooth_service.c.i
 
-src/services/alarm_service.s: src/services/alarm_service.c.s
-.PHONY : src/services/alarm_service.s
+src/services/bluetooth_service.s: src/services/bluetooth_service.c.s
+.PHONY : src/services/bluetooth_service.s
 
 # target to generate assembly for a file
-src/services/alarm_service.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/alarm_service.c.s
-.PHONY : src/services/alarm_service.c.s
+src/services/bluetooth_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/bluetooth_service.c.s
+.PHONY : src/services/bluetooth_service.c.s
 
 src/services/comm_service.o: src/services/comm_service.c.o
 .PHONY : src/services/comm_service.o
@@ -609,6 +585,30 @@ src/services/mp3_service.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/mp3_service.c.s
 .PHONY : src/services/mp3_service.c.s
 
+src/services/multitap_service.o: src/services/multitap_service.c.o
+.PHONY : src/services/multitap_service.o
+
+# target to build an object file
+src/services/multitap_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/multitap_service.c.o
+.PHONY : src/services/multitap_service.c.o
+
+src/services/multitap_service.i: src/services/multitap_service.c.i
+.PHONY : src/services/multitap_service.i
+
+# target to preprocess a source file
+src/services/multitap_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/multitap_service.c.i
+.PHONY : src/services/multitap_service.c.i
+
+src/services/multitap_service.s: src/services/multitap_service.c.s
+.PHONY : src/services/multitap_service.s
+
+# target to generate assembly for a file
+src/services/multitap_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/multitap_service.c.s
+.PHONY : src/services/multitap_service.c.s
+
 src/services/notes_service.o: src/services/notes_service.c.o
 .PHONY : src/services/notes_service.o
 
@@ -632,6 +632,30 @@ src/services/notes_service.s: src/services/notes_service.c.s
 src/services/notes_service.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/notes_service.c.s
 .PHONY : src/services/notes_service.c.s
+
+src/services/pin_service.o: src/services/pin_service.c.o
+.PHONY : src/services/pin_service.o
+
+# target to build an object file
+src/services/pin_service.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/pin_service.c.o
+.PHONY : src/services/pin_service.c.o
+
+src/services/pin_service.i: src/services/pin_service.c.i
+.PHONY : src/services/pin_service.i
+
+# target to preprocess a source file
+src/services/pin_service.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/pin_service.c.i
+.PHONY : src/services/pin_service.c.i
+
+src/services/pin_service.s: src/services/pin_service.c.s
+.PHONY : src/services/pin_service.s
+
+# target to generate assembly for a file
+src/services/pin_service.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blackhand-ui.dir/build.make CMakeFiles/blackhand-ui.dir/src/services/pin_service.c.s
+.PHONY : src/services/pin_service.c.s
 
 src/services/settings_service.o: src/services/settings_service.c.o
 .PHONY : src/services/settings_service.o
@@ -714,24 +738,21 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... blackhand-ui"
+	@echo "... src/bh_skin.o"
+	@echo "... src/bh_skin.i"
+	@echo "... src/bh_skin.s"
 	@echo "... src/draw_utils.o"
 	@echo "... src/draw_utils.i"
 	@echo "... src/draw_utils.s"
 	@echo "... src/frame_renderer.o"
 	@echo "... src/frame_renderer.i"
 	@echo "... src/frame_renderer.s"
-	@echo "... src/keypad_renderer.o"
-	@echo "... src/keypad_renderer.i"
-	@echo "... src/keypad_renderer.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
 	@echo "... src/platform/hardware.o"
 	@echo "... src/platform/hardware.i"
 	@echo "... src/platform/hardware.s"
-	@echo "... src/screens/screen_alarm.o"
-	@echo "... src/screens/screen_alarm.i"
-	@echo "... src/screens/screen_alarm.s"
 	@echo "... src/screens/screen_bluetooth.o"
 	@echo "... src/screens/screen_bluetooth.i"
 	@echo "... src/screens/screen_bluetooth.s"
@@ -762,9 +783,9 @@ help:
 	@echo "... src/screens/screen_voice_memo.o"
 	@echo "... src/screens/screen_voice_memo.i"
 	@echo "... src/screens/screen_voice_memo.s"
-	@echo "... src/services/alarm_service.o"
-	@echo "... src/services/alarm_service.i"
-	@echo "... src/services/alarm_service.s"
+	@echo "... src/services/bluetooth_service.o"
+	@echo "... src/services/bluetooth_service.i"
+	@echo "... src/services/bluetooth_service.s"
 	@echo "... src/services/comm_service.o"
 	@echo "... src/services/comm_service.i"
 	@echo "... src/services/comm_service.s"
@@ -774,9 +795,15 @@ help:
 	@echo "... src/services/mp3_service.o"
 	@echo "... src/services/mp3_service.i"
 	@echo "... src/services/mp3_service.s"
+	@echo "... src/services/multitap_service.o"
+	@echo "... src/services/multitap_service.i"
+	@echo "... src/services/multitap_service.s"
 	@echo "... src/services/notes_service.o"
 	@echo "... src/services/notes_service.i"
 	@echo "... src/services/notes_service.s"
+	@echo "... src/services/pin_service.o"
+	@echo "... src/services/pin_service.i"
+	@echo "... src/services/pin_service.s"
 	@echo "... src/services/settings_service.o"
 	@echo "... src/services/settings_service.i"
 	@echo "... src/services/settings_service.s"

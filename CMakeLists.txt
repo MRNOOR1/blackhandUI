@@ -11,7 +11,7 @@ add_executable(blackhand-ui
     src/main.c
     src/draw_utils.c
     src/frame_renderer.c
-    src/keypad_renderer.c
+    src/bh_skin.c
     src/screens/screen_home.c
     src/screens/screen_settings.c
     src/platform/hardware.c
@@ -21,7 +21,6 @@ add_executable(blackhand-ui
     src/screens/screen_mp3.c
     src/screens/screen_voice_memo.c
     src/screens/screen_notes.c
-    src/screens/screen_alarm.c
     src/screens/screen_theme.c
     src/screens/screen_bluetooth.c
     src/services/settings_service.c
@@ -30,8 +29,10 @@ add_executable(blackhand-ui
     src/services/mp3_service.c
     src/services/notes_service.c
     src/services/voice_memo_service.c
-    src/services/alarm_service.c
     src/services/theme_service.c
+    src/services/multitap_service.c
+    src/services/pin_service.c
+    src/services/bluetooth_service.c
 )
 
 target_include_directories(blackhand-ui PRIVATE

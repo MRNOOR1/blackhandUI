@@ -1,7 +1,7 @@
 CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o: \
   /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.c \
   /Users/mrnoori/Desktop/blackhandUI/src/draw_utils.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/stdint.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdint.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int8_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int16_t.h \
@@ -15,7 +15,7 @@ CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_symbol_aliasing.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_posix_availability.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/ptrcheck.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_types.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_types.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_types.h \
@@ -53,13 +53,13 @@ CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wchar.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wchar.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mbstate_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_header_macro.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___gnuc_va_list.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_list.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_arg.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___va_copy.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_copy.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/stdarg.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg_header_macro.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg___gnuc_va_list.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg_va_list.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg_va_arg.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg___va_copy.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/__stdarg_va_copy.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_va_list.h \
@@ -118,13 +118,13 @@ CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_string.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/signal.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_t.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/limits.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_limits.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/syslimits.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/21/include/stdbool.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncport.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet/in.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_in_addr_t.h \
@@ -176,4 +176,5 @@ CMakeFiles/blackhand-ui.dir/src/draw_utils.c.o: \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/nckeys.h \
   /opt/homebrew/Cellar/notcurses/3.0.17/include/notcurses/ncseqs.h \
   /Users/mrnoori/Desktop/blackhandUI/src/config.h \
+  /Users/mrnoori/Desktop/blackhandUI/src/bh_skin.h \
   /Users/mrnoori/Desktop/blackhandUI/src/services/theme_service.h
